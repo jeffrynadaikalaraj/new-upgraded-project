@@ -8,6 +8,7 @@ import Sidebar from './components/layout/Sidebar';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ChatPage from './pages/ChatPage';
+import GoalsPage from './pages/GoalsPage';
 
 const Placeholder = ({ title }) => (
   <div className="flex h-full items-center justify-center bg-slate-900 text-white w-full">
@@ -51,7 +52,7 @@ function App() {
           
           <Route path="/goals" element={
             <AppLayout>
-              <Placeholder title="Goals" />
+              <GoalsPage />
             </AppLayout>
           } />
           

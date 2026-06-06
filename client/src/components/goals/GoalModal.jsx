@@ -1,0 +1,224 @@
+import React, { useState, useEffect } from 'react';
+import { X, Target, Calendar, ListPlus, Trash2 } from 'lucide-react';
+import Button from '../ui/Button';
+
+const CATEGORIES = ['career', 'health', 'finance', 'learning', 'personal', 'other'];
+const PRIORITIES = ['low', 'medium', 'high', 'critical'];
+
+const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'career',
+    priority: 'medium',
+    targetDate: '',
+    status: 'active',
+    milestones: []
+  });
+  
+  const [newMilestone, setNewMilestone] = useState('');
+
+  useEffect(() => {
+    if (goal && isOpen) {
+      setFormData({
+        title: goal.title || '',
+        description: goal.description || '',
+        category: goal.category || 'career',
+        priority: goal.priority || 'medium',
+        targetDate: goal.targetDate ? new Date(goal.targetDate).toISOString().split('T')[0] : '',
+        status: goal.status || 'active',
+        milestones: goal.milestones || []
+      });
+    } else if (isOpen) {
+      // Reset form on open new
+      setFormData({
+        title: '',
+        description: '',
+        category: 'career',
+        priority: 'medium',
+        targetDate: '',
+        status: 'active',
+        milestones: []
+      });
+      setNewMilestone('');
+    }
+  }, [goal, isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  const addMilestone = () => {
+    if (!newMilestone.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      milestones: [...prev.milestones, { title: newMilestone.trim(), completed: false }]
+    }));
+    setNewMilestone('');
+  };
+
+  const removeMilestone = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      milestones: prev.milestones.filter((_, i) => i !== index)
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-slate-900 border border-slate-700/50 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        
+        {/* Header */}
+        <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-800/30">
+          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <Target size={20} className="text-indigo-400" />
+            {goal ? 'Edit Goal' : 'Create New Goal'}
+          </h2>
+          <button 
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-800"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 overflow-y-auto custom-scrollbar">
+          <form id="goal-form" onSubmit={handleSubmit} className="space-y-5">
+            
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Goal Title</label>
+              <input
+                type="text"
+                required
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                placeholder="e.g. Learn React Native in 30 days"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Description (Optional)</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none h-24"
+                placeholder="Why do you want to achieve this?"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all capitalize"
+                >
+                  {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Priority</label>
+                <select
+                  value={formData.priority}
+                  onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all capitalize"
+                >
+                  {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Calendar size={14} /> Target Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.targetDate}
+                  onChange={(e) => setFormData({...formData, targetDate: e.target.value})}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                  style={{ colorScheme: 'dark' }}
+                />
+              </div>
+              
+              {goal && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all capitalize"
+                  >
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="paused">Paused</option>
+                    <option value="abandoned">Abandoned</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <ListPlus size={14} /> Milestones
+              </label>
+              
+              <div className="space-y-2 mb-3">
+                {formData.milestones.map((m, idx) => (
+                  <div key={idx} className="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
+                    <span className="flex-1 text-sm text-slate-200 truncate pl-2">{m.title}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => removeMilestone(idx)}
+                      className="text-slate-500 hover:text-rose-400 transition-colors p-1"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newMilestone}
+                  onChange={(e) => setNewMilestone(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMilestone(); } }}
+                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                  placeholder="Add a milestone step..."
+                />
+                <button 
+                  type="button"
+                  onClick={addMilestone}
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl transition-colors text-sm font-medium border border-slate-700"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 border-t border-slate-800 bg-slate-900 flex justify-end gap-3">
+          <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+          <Button variant="primary" form="goal-form" type="submit">
+            {goal ? 'Save Changes' : 'Create Goal'}
+          </Button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default GoalModal;

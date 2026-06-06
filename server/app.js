@@ -9,6 +9,7 @@ const config = require('./config/env');
 // Route files
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
+const goalRoutes = require('./routes/goals');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api', apiLimiter);
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/goals', goalRoutes);
 
 // Basic health route
 app.get('/api/health', (req, res) => {

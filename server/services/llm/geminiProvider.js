@@ -7,11 +7,12 @@ const modelName = 'gemini-1.5-flash';
 
 // Basic non-streaming call
 exports.generateResponse = async (prompt, systemInstruction = '') => {
-  const model = genAI.getGenerativeModel({ 
+  const model = genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: systemInstruction 
+
+    systemInstruction: systemInstruction
   });
-  
+
   const result = await model.generateContent(prompt);
   const response = await result.response;
   return response.text();
@@ -19,9 +20,9 @@ exports.generateResponse = async (prompt, systemInstruction = '') => {
 
 // Streaming call
 exports.generateStream = async (messages, systemInstruction = '') => {
-  const model = genAI.getGenerativeModel({ 
+  const model = genAI.getGenerativeModel({
     model: modelName,
-    systemInstruction: systemInstruction 
+    systemInstruction: systemInstruction
   });
 
   // Convert generic messages to Gemini format
@@ -29,11 +30,11 @@ exports.generateStream = async (messages, systemInstruction = '') => {
     role: msg.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: msg.content }]
   }));
-  
+
   const latestMessage = messages[messages.length - 1].content;
 
   const chat = model.startChat({ history });
-  
+
   const result = await chat.sendMessageStream(latestMessage);
   return result.stream;
 };
