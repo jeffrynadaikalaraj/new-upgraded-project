@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-dark: #0f172a; /* slate-900 */
+    --bg-card: rgba(30, 41, 59, 0.7); /* slate-800 with opacity */
+    --text-main: #f8fafc; /* slate-50 */
+    --text-muted: #94a3b8; /* slate-400 */
+    --accent-primary: #6366f1; /* indigo-500 */
+    --accent-secondary: #ec4899; /* pink-500 */
+    --accent-tertiary: #06b6d4; /* cyan-500 */
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    @apply bg-slate-900 text-slate-50 font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism */
+  .glass {
+    @apply bg-slate-800/70 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+
+  /* Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-indigo-500 to-pink-500;
+  }
+
+  .bg-gradient {
+    @apply bg-gradient-to-br from-cyan-500 via-indigo-500 to-pink-500;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-full hover:bg-white/30 transition-colors;
+  }
+}
