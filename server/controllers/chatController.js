@@ -53,7 +53,7 @@ exports.streamChat = async (req, res, next) => {
 
     // Start LLM stream
     const startTime = Date.now();
-    await orchestrator.executeLLMStream(formattedHistory, res, async (fullResponse) => {
+    await orchestrator.executeLLMStream(formattedHistory, res, req.user.id, async (fullResponse) => {
       // Callback executed after stream completes
       const latencyMs = Date.now() - startTime;
       

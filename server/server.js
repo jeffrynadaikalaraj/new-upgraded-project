@@ -1,9 +1,12 @@
 const app = require('./app');
 const { connectDB } = require('./config/db');
 const config = require('./config/env');
+const { initCronJobs } = require('./jobs/cronJobs');
 
-// Connect to database
-connectDB(); 
+// Connect to database and start cron jobs
+connectDB().then(() => {
+  initCronJobs();
+});
 
 const server = app.listen(config.PORT, () => {
   console.log(`Server running in ${config.NODE_ENV} mode on port ${config.PORT}`);

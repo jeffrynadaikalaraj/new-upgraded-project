@@ -2,8 +2,12 @@
 node_modules/
 
 # Environment Variables
-.env
-.env.local
+.env*
+!*.example
+
+# Test & Scratch files
+*test*.js
+notepad*
 
 # Build outputs
 client/dist/

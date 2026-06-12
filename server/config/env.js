@@ -28,5 +28,6 @@ module.exports = {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GROQ_API_KEY: process.env.GROQ_API_KEY,
   OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
-  CHROMA_URL: process.env.CHROMA_URL || 'http://localhost:8000'
+  CHROMA_URL: process.env.CHROMA_URL || 'http://localhost:8000',
+  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000'
 };

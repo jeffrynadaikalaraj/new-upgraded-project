@@ -4,6 +4,7 @@ import { useGoalStore } from '../stores/goalStore';
 import GoalCard from '../components/goals/GoalCard';
 import GoalModal from '../components/goals/GoalModal';
 import Button from '../components/ui/Button';
+import { PageSkeleton } from '../components/common/LoadingSkeleton';
 
 const GoalsPage = () => {
   const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions } = useGoalStore();
@@ -103,16 +104,16 @@ const GoalsPage = () => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
         {isLoading && goals.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-slate-500">Loading goals...</div>
+          <PageSkeleton title="My Goals" showHeader={false} />
         ) : filteredGoals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
             <div className="w-24 h-24 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6">
               <Target size={48} className="text-indigo-400 opacity-50" />
             </div>
-            <h3 className="text-xl font-bold text-slate-200 mb-2">No goals found</h3>
+            <h3 className="text-xl font-bold text-slate-200 mb-2">🎯 No goals yet</h3>
             <p className="text-slate-400 text-sm mb-8">
               {filterStatus === 'active' 
-                ? "You don't have any active goals right now. Let's set one and let AI LifeOS help you achieve it." 
+                ? "Create your first goal and start building momentum." 
                 : "Try changing your filters to see more goals."}
             </p>
             <Button onClick={handleOpenNew} variant="primary">Create Your First Goal</Button>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   MessageSquare, Target, Activity, LayoutDashboard, Settings,
-  LogOut, PlusCircle, ChevronLeft, ChevronRight, Trash2
+  LogOut, PlusCircle, ChevronLeft, ChevronRight, Trash2, Brain, Calendar, BarChart3, FileBarChart, FileText
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useChatStore } from '../../stores/chatStore';
@@ -13,6 +13,12 @@ const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/goals', label: 'Goals', icon: Target },
   { path: '/habits', label: 'Habits', icon: Activity },
+  { path: '/planner', label: 'Planner', icon: Calendar },
+  { path: '/memories', label: 'Memory', icon: Brain },
+  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { path: '/reports', label: 'Reports', icon: FileBarChart },
+  { path: '/documents', label: 'Documents', icon: FileText },
+  { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
 const Sidebar = () => {
@@ -39,18 +45,28 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside
-      className={`relative flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out flex-shrink-0 ${
-        sidebarOpen ? 'w-64' : 'w-16'
-      }`}
-    >
-      {/* Toggle button */}
-      <button
-        onClick={toggleSidebar}
-        className="absolute -right-3.5 top-8 z-20 w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-600 transition-colors shadow-md"
+    <>
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm"
+          onClick={toggleSidebar}
+        />
+      )}
+      
+      <aside
+        className={`absolute md:relative z-50 flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out flex-shrink-0 ${
+          sidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full md:translate-x-0 md:w-16'
+        }`}
       >
-        {sidebarOpen ? <ChevronLeft size={14}/> : <ChevronRight size={14}/>}
-      </button>
+        {/* Toggle button */}
+        <button
+          onClick={toggleSidebar}
+          className="hidden md:flex absolute -right-3.5 top-8 z-20 w-7 h-7 rounded-full bg-slate-700 border border-slate-600 items-center justify-center text-slate-400 hover:text-white hover:bg-slate-600 transition-colors shadow-md"
+        >
+          {sidebarOpen ? <ChevronLeft size={14}/> : <ChevronRight size={14}/>}
+        </button>
+
 
       {/* Logo */}
       <div className={`flex items-center gap-3 p-4 border-b border-slate-800 h-16 ${!sidebarOpen && 'justify-center'}`}>
@@ -144,6 +160,7 @@ const Sidebar = () => {
         </button>
       </div>
     </aside>
+    </>
   );
 };
 
