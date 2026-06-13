@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2 } from 'lucide-react';
+import VoiceButton from './VoiceButton';
 
 const ChatInput = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('');
@@ -29,6 +30,21 @@ const ChatInput = ({ onSendMessage, disabled }) => {
     target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
   };
 
+  const handleVoiceTranscript = useCallback((transcript, isFinal) => {
+    // If it's final, we could auto-send, or just append it to the message.
+    // Let's replace the current message with the transcript for simplicity.
+    setMessage(prev => isFinal ? transcript + ' ' : transcript);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+    // Auto send if final (Optional, uncomment below to auto-send)
+    // if (isFinal && transcript.trim() && !disabled) {
+    //   onSendMessage(transcript);
+    //   setMessage('');
+    // }
+  }, [disabled, onSendMessage]);
+
   return (
     <form onSubmit={handleSubmit} className="relative w-full max-w-4xl mx-auto flex items-end gap-2 p-4">
       <div className="relative flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
@@ -46,10 +62,11 @@ const ChatInput = ({ onSendMessage, disabled }) => {
         <button
           type="submit"
           disabled={!message.trim() || disabled}
-          className="absolute right-2 bottom-2.5 p-2 text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors rounded-lg"
+          className="absolute right-2 bottom-2.5 p-2 text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors rounded-lg z-10"
         >
           {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
+        <VoiceButton onTranscript={handleVoiceTranscript} isGenerating={disabled} />
       </div>
     </form>
   );

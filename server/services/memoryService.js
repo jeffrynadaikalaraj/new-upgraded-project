@@ -1,5 +1,5 @@
 const Memory = require('../models/Memory');
-const geminiProvider = require('./llm/geminiProvider');
+const groqProvider = require('./llm/groqProvider');
 
 /**
  * Extract memories from user message and AI response using Gemini and save them.
@@ -14,25 +14,29 @@ exports.extractMemories = async (userMessage, aiResponse, userId) => {
 Your job is to analyze the conversation between the user and the AI, and extract key information to remember about the user.
 
 Types of memories to extract:
-- 'fact': Stable background information (e.g., job, location, family, skills, programming languages they use, etc.)
-- 'preference': Likes, dislikes, favorite things, core choices.
-- 'event': Significant upcoming plans, scheduled events, past milestones.
-- 'insight': Behavioral patterns, mood traits, learning style, psychological insights.
+- 'fact': Stable background information
+- 'preference': Likes, dislikes, favorite things
+- 'event': Significant upcoming plans, scheduled events
+- 'insight': Behavioral patterns, mood traits
+- 'profile': Core identity elements (name, age, profession)
 
 Rules:
-1. Only extract information that is useful for future interactions (e.g., favorite coding language, diet preference, career goals, habits, etc.). Avoid generic pleasantries or short-lived context.
-2. Formulate the "content" of the memory in clear, concise, third-person statements (e.g., "User's favorite programming language is Java", "User goes to the gym every morning", "User wants to become an AI Engineer").
-3. Assign an "importance" score from 1 (trivial/transient) to 10 (critical personal context like name, major goals).
-4. Provide relevant search tags (e.g., ["programming", "fitness", "career", "personal"]).
-5. If the information is temporary, specify "expiresAfterDays" as an integer. Otherwise, omit it.
-6. Return a valid JSON array of objects. If no useful memories can be extracted, return an empty array [].
-7. Do not wrap the output in markdown code blocks like \`\`\`json. Just return raw JSON.
+1. Only extract information useful for future interactions.
+2. Formulate "content" as a clear, concise, third-person statement.
+3. Assign an "importance" score from 1 to 10.
+4. Extract structured key-value pairs if applicable (e.g., key: "favorite_language", value: "Java", category: "tech"). Category can be: personal, education, career, health, tech, lifestyle, social, general.
+5. Provide relevant search tags.
+6. Return a valid JSON array of objects.
+7. Do not wrap output in markdown code blocks.
 
 Output format:
 [
   {
-    "type": "fact|preference|event|insight",
+    "type": "fact|preference|event|insight|profile",
     "content": "Statement in third person",
+    "key": "specific_attribute_name_optional",
+    "value": "attribute_value_optional",
+    "category": "general",
     "importance": 1-10,
     "tags": ["tag1", "tag2"],
     "expiresAfterDays": 30
@@ -44,7 +48,7 @@ AI responded: "${aiResponse}"
 
 Extract any memories worth saving:`;
 
-    const responseText = await geminiProvider.generateResponse(prompt, systemInstruction);
+    const responseText = await groqProvider.generateResponse(prompt, systemInstruction);
 
     // Parse the response
     let text = responseText.trim();
@@ -97,6 +101,9 @@ Extract any memories worth saving:`;
         userId,
         type: item.type,
         content: item.content,
+        key: item.key,
+        value: item.value,
+        category: item.category || 'general',
         source: 'chat',
         importance: item.importance || 5,
         tags: Array.isArray(item.tags) ? item.tags.map(t => t.toLowerCase()) : [],
@@ -208,5 +215,32 @@ exports.pruneExpiredMemories = async () => {
   } catch (err) {
     console.error('Error pruning expired memories:', err);
     return 0;
+  }
+};
+
+/**
+ * Get aggregated user profile from memories.
+ * @param {string} userId - The user's ID
+ * @returns {Promise<Object>} Aggregated profile object
+ */
+exports.getUserProfile = async (userId) => {
+  try {
+    const profileMemories = await Memory.find({ userId, type: 'profile' }).sort({ createdAt: -1 });
+    const preferences = await Memory.find({ userId, type: 'preference' }).sort({ createdAt: -1 });
+    const insights = await Memory.find({ userId, type: 'insight' }).sort({ createdAt: -1 });
+    const facts = await Memory.find({ userId, type: 'fact' }).sort({ createdAt: -1 });
+
+    const profile = {};
+    profileMemories.forEach(m => { if (m.key) profile[m.key] = m.value; });
+
+    const prefs = {};
+    preferences.forEach(m => { if (m.key) prefs[m.key] = m.value; });
+    
+    const identityVectors = insights.map(i => i.content).concat(facts.map(f => f.content));
+
+    return { ...profile, preferences: prefs, identityVectors };
+  } catch (err) {
+    console.error('Error fetching user profile:', err);
+    return {};
   }
 };

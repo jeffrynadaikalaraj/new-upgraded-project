@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import ActionBadge from './ActionBadge';
 
 const MessageBubble = ({ message }) => {
   const isUser = message.role === 'user';
@@ -44,10 +45,18 @@ const MessageBubble = ({ message }) => {
                   )
               }}
             >
-              {message.content || '...'}
+              {message.content?.replace(/<!--ACTION:.*?-->/g, '') || '...'}
             </ReactMarkdown>
           )}
         </div>
+
+        {message.actions && message.actions.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {message.actions.map((action, idx) => (
+              <ActionBadge key={idx} action={action} />
+            ))}
+          </div>
+        )}
 
         {message.isStreaming && (
           <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-400 animate-pulse align-middle"></span>

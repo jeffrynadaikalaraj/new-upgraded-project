@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Target, Activity, Flame, Calendar as CalendarIcon, CheckCircle2, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Target, Activity, Flame, Calendar as CalendarIcon, CheckCircle2, Sparkles, BrainCircuit, NotebookPen } from 'lucide-react';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
 
@@ -75,7 +75,14 @@ const DashboardPage = () => {
     return <PageSkeleton title="Dashboard" showHeader={false} />;
   }
 
-  const { stats, weeklyChart, recentActivity, aiInsight } = dashboardData;
+  const { user, stats, weeklyChart, recentActivity, aiInsight, aiSuggestions, dailyReview } = dashboardData;
+
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  })();
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-slate-900 w-full relative">
@@ -87,10 +94,9 @@ const DashboardPage = () => {
       <div className="flex items-center justify-between p-8 pb-4 relative z-10">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <LayoutDashboard className="text-indigo-400" size={32} />
-            Dashboard
+            {greeting}, {user?.name || 'User'} <span className="animate-wave origin-bottom-right">👋</span>
           </h1>
-          <p className="text-slate-400 mt-2 text-sm">Welcome back. Here is your LifeOS overview.</p>
+          <p className="text-slate-400 mt-2 text-sm">Here is your LifeOS overview.</p>
         </div>
       </div>
 
@@ -147,10 +153,69 @@ const DashboardPage = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* AI Suggestions Panel */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.45 }}
+              className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl flex flex-col h-full"
+            >
+              <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
+                <BrainCircuit className="text-violet-400" size={20} />
+                AI Suggestions
+              </h3>
+              <div className="space-y-3">
+                {aiSuggestions && aiSuggestions.length > 0 ? (
+                  aiSuggestions.map((suggestion, idx) => (
+                    <div key={idx} className="flex items-start gap-3 bg-slate-800/80 p-3 rounded-xl border border-slate-700/50">
+                      <div className="mt-0.5 text-violet-400">
+                        <Sparkles size={14} />
+                      </div>
+                      <p className="text-sm text-slate-300">{suggestion}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-slate-500 text-sm text-center">No new suggestions.</p>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Daily Review Panel */}
+            {dailyReview && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.45 }}
+                className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl flex flex-col h-full"
+              >
+                <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                  <NotebookPen className="text-sky-400" size={20} />
+                  Daily Review
+                </h3>
+                <div className="flex gap-4 mb-4">
+                   <div className="flex-1 bg-slate-800/80 rounded-xl p-3 border border-slate-700/50 text-center">
+                     <p className="text-xs text-slate-400 mb-1">Habits</p>
+                     <p className="text-xl font-bold text-slate-200">{dailyReview.stats?.completedHabits}/{dailyReview.stats?.totalHabits}</p>
+                   </div>
+                   <div className="flex-1 bg-slate-800/80 rounded-xl p-3 border border-slate-700/50 text-center">
+                     <p className="text-xs text-slate-400 mb-1">Tasks</p>
+                     <p className="text-xl font-bold text-slate-200">{dailyReview.stats?.completedTasks}/{dailyReview.stats?.totalTasks}</p>
+                   </div>
+                </div>
+                <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-sky-400/50 pl-3">
+                  "{dailyReview.summary}"
+                </p>
+              </motion.div>
+            )}
+
             {/* Chart */}
-            <div className="lg:col-span-2">
+            <div className={`lg:col-span-${dailyReview ? '1' : '2'}`}>
               <WeeklyChart data={weeklyChart} />
             </div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {/* Recent Activity */}
             <motion.div

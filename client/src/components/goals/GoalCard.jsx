@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, CheckCircle2, Circle, Clock, ChevronDown, ChevronUp, Zap, Calendar, TrendingUp } from 'lucide-react';
+import { Target, CheckCircle2, Circle, Clock, ChevronDown, ChevronUp, Zap, Calendar, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const categoryColors = {
   career: 'from-blue-500/20 to-blue-600/20 text-blue-400 border-blue-500/30',
@@ -17,7 +17,7 @@ const priorityDots = {
   critical: 'bg-rose-500'
 };
 
-const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestions }) => {
+const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestions, onPredictGoal }) => {
   const [expanded, setExpanded] = useState(false);
   const colorScheme = categoryColors[goal.category] || categoryColors.other;
   const dotColor = priorityDots[goal.priority] || priorityDots.medium;
@@ -53,6 +53,18 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
               <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
                 <Calendar size={12} />
                 <span>Due: {new Date(goal.targetDate).toLocaleDateString()}</span>
+              </div>
+            )}
+            {goal.prediction && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
+                  goal.prediction.riskLevel === 'Low' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                  goal.prediction.riskLevel === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                  'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                }`}>
+                  {goal.prediction.riskLevel} Risk
+                </span>
+                <span className="text-[10px] text-slate-400">ETA: {goal.prediction.estimatedCompletion}</span>
               </div>
             )}
           </div>
@@ -152,6 +164,36 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
               </div>
             )}
           </div>
+
+          {/* Goal Prediction Area */}
+          <div className="mt-4 bg-slate-900/30 border border-slate-700/50 rounded-xl p-4">
+            <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <AlertTriangle size={14} className="text-amber-400" /> AI Goal Prediction
+            </h4>
+            {goal.prediction ? (
+              <div className="text-sm text-slate-400">
+                <p className="mb-2"><span className="text-slate-200 font-medium">Success Rate:</span> {goal.prediction.successRate}%</p>
+                <p className="italic text-slate-300">{goal.prediction.insight}</p>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onPredictGoal(goal._id); }}
+                  className="mt-3 text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  Refresh Prediction
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-start gap-3">
+                <p className="text-xs text-slate-400">Analyze your task and habit history to predict if you'll hit this goal.</p>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onPredictGoal && onPredictGoal(goal._id); }}
+                  className="text-xs font-medium bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  <AlertTriangle size={12} /> Predict Outcome
+                </button>
+              </div>
+            )}
+          </div>
+
         </div>
       )}
     </div>

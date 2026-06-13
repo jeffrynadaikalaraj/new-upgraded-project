@@ -53,7 +53,7 @@ exports.streamChat = async (req, res, next) => {
 
     // Start LLM stream
     const startTime = Date.now();
-    await orchestrator.executeLLMStream(formattedHistory, res, req.user.id, async (fullResponse) => {
+    await orchestrator.executeLLMStream(formattedHistory, res, req.user.id, async (fullResponse, actionResults) => {
       // Callback executed after stream completes
       const latencyMs = Date.now() - startTime;
       
@@ -65,6 +65,7 @@ exports.streamChat = async (req, res, next) => {
         content: fullResponse,
         model: 'gemini-1.5-flash',
         latencyMs,
+        actions: actionResults || [],
       });
 
       // Update chat metadata

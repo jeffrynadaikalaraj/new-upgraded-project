@@ -4,6 +4,7 @@ import { FileText, Send, Sparkles, ChevronDown, ChevronUp, X, AlertTriangle } fr
 import { useDocumentStore } from '../stores/documentStore';
 import UploadZone from '../components/documents/UploadZone';
 import DocumentCard from '../components/documents/DocumentCard';
+import StudyCompanion from '../components/documents/StudyCompanion';
 
 // ─── Document Viewer Panel ────────────────────────────────────────────────────
 const DocumentViewer = ({ doc, onClose }) => {
@@ -11,6 +12,7 @@ const DocumentViewer = ({ doc, onClose }) => {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [showExtracted, setShowExtracted] = useState(false);
+  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'study'
 
   const handleAsk = async () => {
     if (!question.trim()) return;
@@ -47,7 +49,24 @@ const DocumentViewer = ({ doc, onClose }) => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-5">
+      {/* Tabs */}
+      <div className="flex px-5 pt-3 border-b border-slate-700/40">
+        <button
+          onClick={() => setActiveTab('details')}
+          className={`pb-3 px-4 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
+        >
+          Details & Q&A
+        </button>
+        <button
+          onClick={() => setActiveTab('study')}
+          className={`pb-3 px-4 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'study' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
+        >
+          Study Companion
+        </button>
+      </div>
+
+      {activeTab === 'details' ? (
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-5">
         {/* Summary */}
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -139,6 +158,11 @@ const DocumentViewer = ({ doc, onClose }) => {
           </AnimatePresence>
         </div>
       </div>
+      ) : (
+        <div className="flex-1 overflow-hidden">
+          <StudyCompanion doc={doc} />
+        </div>
+      )}
     </motion.div>
   );
 };

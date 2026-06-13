@@ -59,6 +59,12 @@ const GoalSchema = new mongoose.Schema({
   aiSuggestions: [{
     type: String,
   }],
+  prediction: {
+    estimatedCompletion: String,
+    successRate: Number,
+    riskLevel: { type: String, enum: ['Low', 'Medium', 'High'] },
+    insight: String
+  },
   tags: [{
     type: String,
   }],

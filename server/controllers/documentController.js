@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Document = require('../models/Document');
 const { processDocument, summarizeDocument, askDocumentQuestion } = require('../services/documentService');
+const { chunkText, generateEmbedding } = require('../services/vectorService');
 
 // POST /api/documents/upload
 exports.uploadDocument = async (req, res, next) => {
@@ -25,6 +26,18 @@ exports.uploadDocument = async (req, res, next) => {
     // 2. Generate summary
     const summary = await summarizeDocument(extractedText);
 
+    // 2.5 Generate Chunks & Embeddings for RAG (Limit to 15 chunks to avoid API limits on free tier)
+    const rawChunks = chunkText(extractedText, 300, 50);
+    const embeddedChunks = [];
+    for (let i = 0; i < Math.min(rawChunks.length, 15); i++) {
+      try {
+        const embedding = await generateEmbedding(rawChunks[i]);
+        embeddedChunks.push({ text: rawChunks[i], chunkIndex: i, embedding });
+      } catch (err) {
+        console.warn('Failed to embed chunk', i, err);
+      }
+    }
+
     // 3. Auto-tag from filename
     const tags = file.originalname
       .replace(/\.[^.]+$/, '') // strip extension
@@ -41,7 +54,8 @@ exports.uploadDocument = async (req, res, next) => {
       size: file.size,
       extractedText,
       summary,
-      tags
+      tags,
+      chunks: embeddedChunks
     });
 
     // 5. Remove the temp upload file (we store text in DB, not file on disk)

@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
 
 const GoalsPage = () => {
-  const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions } = useGoalStore();
+  const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions, predictGoal } = useGoalStore();
   
   const [filterStatus, setFilterStatus] = useState('active');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -127,6 +127,7 @@ const GoalsPage = () => {
                 onClickEdit={handleOpenEdit}
                 onUpdateMilestone={updateMilestone}
                 onGenerateAiSuggestions={generateAiSuggestions}
+                onPredictGoal={predictGoal}
               />
             ))}
           </div>

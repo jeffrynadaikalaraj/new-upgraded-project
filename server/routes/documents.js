@@ -21,12 +21,13 @@ const upload = multer({
   fileFilter: (_req, file, cb) => {
     const allowed = [
       'image/png', 'image/jpeg', 'image/jpg',
-      'text/plain', 'application/pdf'
+      'text/plain', 'application/pdf',
+      'audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'video/mp4', 'audio/webm'
     ];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: PDF, TXT, PNG, JPG.`));
+      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: PDF, TXT, PNG, JPG, Audio/Video.`));
     }
   }
 });

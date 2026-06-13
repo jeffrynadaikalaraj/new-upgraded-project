@@ -1,7 +1,35 @@
 import { create } from 'zustand';
 import api from '../services/api';
 
-const BASE_URL = 'http://localhost:5001';
+const BASE_URL = ''; // Use Vite proxy to avoid CORS issues
+
+// Optional TTS feature toggle - can be linked to a UI setting later
+let isVoiceModeEnabled = true;
+
+const speakText = (text) => {
+  if (!isVoiceModeEnabled || !('speechSynthesis' in window)) return;
+  
+  // Clean text of markdown and action tags
+  const cleanText = text
+    .replace(/<!--ACTION:.*?-->/g, '')
+    .replace(/[*_~`#]/g, '')
+    .trim();
+    
+  if (!cleanText) return;
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = 'en-US';
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  
+  // Try to find a good female/assistant voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Female'));
+  if (preferredVoice) utterance.voice = preferredVoice;
+
+  window.speechSynthesis.cancel(); // Stop current speaking
+  window.speechSynthesis.speak(utterance);
+};
 
 export const useChatStore = create((set, get) => ({
   messages: [],
@@ -95,12 +123,18 @@ export const useChatStore = create((set, get) => ({
           if (!raw) continue;
 
           if (raw === '[DONE]') {
-            set(state => ({
-              isStreaming: false,
-              messages: state.messages.map(m =>
-                m._id === tempAiMsgId ? { ...m, isStreaming: false } : m
-              )
-            }));
+            set(state => {
+              const aiMsg = state.messages.find(m => m._id === tempAiMsgId);
+              if (aiMsg && aiMsg.content) {
+                speakText(aiMsg.content);
+              }
+              return {
+                isStreaming: false,
+                messages: state.messages.map(m =>
+                  m._id === tempAiMsgId ? { ...m, isStreaming: false } : m
+                )
+              };
+            });
             // Refresh history sidebar
             get().loadChatHistory();
             return;
@@ -130,6 +164,16 @@ export const useChatStore = create((set, get) => ({
                 messages: state.messages.map(m =>
                   m._id === tempAiMsgId
                     ? { ...m, content: 'Error: ' + data.error, isStreaming: false }
+                    : m
+                )
+              }));
+            }
+
+            if (data.action) {
+              set(state => ({
+                messages: state.messages.map(m =>
+                  m._id === tempAiMsgId
+                    ? { ...m, actions: [...(m.actions || []), data.action] }
                     : m
                 )
               }));

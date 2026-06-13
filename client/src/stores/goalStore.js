@@ -90,5 +90,20 @@ export const useGoalStore = create((set, get) => ({
       set({ error: error.response?.data?.error || 'Failed to generate suggestions' });
       throw error;
     }
+  },
+
+  predictGoal: async (goalId) => {
+    try {
+      // Optimistic loading state could go here if needed
+      const response = await api.post(`/goals/${goalId}/predict`);
+      // Update the specific goal in the list with the prediction data
+      set((state) => ({
+        goals: state.goals.map((g) => (g._id === goalId ? { ...g, prediction: response.data.data } : g))
+      }));
+      return response.data.data;
+    } catch (error) {
+      set({ error: error.response?.data?.error || 'Failed to generate goal prediction' });
+      throw error;
+    }
   }
 }));

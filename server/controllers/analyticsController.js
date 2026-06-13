@@ -1,6 +1,7 @@
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
 const DailyPlan = require('../models/DailyPlan');
+const Mood = require('../models/Mood');
 
 // Helper for date calculations
 const getPastDate = (daysAgo) => {
@@ -106,9 +107,22 @@ exports.getWeekly = async (req, res, next) => {
       userId, 
       date: { $gte: getPastDate(6) } 
     });
+    
+    // Also fetch moods
+    const recentMoods = await Mood.find({
+      userId,
+      date: { $gte: new Date(getPastDate(6)) }
+    });
 
     const planMap = {};
     recentPlans.forEach(p => { planMap[p.date] = p.score; });
+    
+    const moodMap = {};
+    recentMoods.forEach(m => {
+      const dateStr = new Date(m.date).toISOString().split('T')[0];
+      // keep the latest mood for the day if multiple
+      moodMap[dateStr] = m.score;
+    });
 
     const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     for (let i = 6; i >= 0; i--) {
@@ -117,7 +131,8 @@ exports.getWeekly = async (req, res, next) => {
       const dateStr = d.toISOString().split('T')[0];
       weeklyData.push({
         day: daysOfWeek[d.getDay()],
-        score: planMap[dateStr] || 0
+        score: planMap[dateStr] || 0,
+        mood: moodMap[dateStr] || 0 // 0 means no data
       });
     }
 

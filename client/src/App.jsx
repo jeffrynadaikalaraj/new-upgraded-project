@@ -18,6 +18,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import DocumentsPage from './pages/DocumentsPage';
+import CalendarPage from './pages/CalendarPage';
 
 const Placeholder = ({ title }) => (
   <div className="flex h-full items-center justify-center bg-slate-900 text-white w-full">
@@ -109,6 +110,12 @@ function App() {
           <Route path="/settings" element={
             <AppLayout>
               <SettingsPage />
+            </AppLayout>
+          } />
+
+          <Route path="/calendar" element={
+            <AppLayout>
+              <CalendarPage />
             </AppLayout>
           } />
 

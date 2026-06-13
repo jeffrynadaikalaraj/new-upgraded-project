@@ -44,6 +44,8 @@ app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/documents', uploadLimiter, require('./routes/documents'));
+app.use('/api/study', require('./routes/studyRoutes'));
+app.use('/api/calendar', require('./routes/calendar'));
 
 // Basic health route
 app.get('/api/health', (req, res) => {

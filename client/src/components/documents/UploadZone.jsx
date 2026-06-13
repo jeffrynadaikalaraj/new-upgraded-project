@@ -2,12 +2,13 @@ import React, { useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadCloud, FileText, Image, File, X } from 'lucide-react';
 
-const ACCEPTED = '.pdf,.txt,.png,.jpg,.jpeg,.webp';
+const ACCEPTED = '.pdf,.txt,.png,.jpg,.jpeg,.webp,.mp3,.wav,.mp4,.m4a,.webm';
 
 const getFileIcon = (file) => {
   if (!file) return File;
   const type = file.type || '';
   if (type.includes('image')) return Image;
+  if (type.includes('audio') || type.includes('video')) return File; // we could use Mic or Video icons here if imported
   if (type === 'text/plain') return FileText;
   return File;
 };
@@ -23,11 +24,15 @@ const UploadZone = ({ onUpload, isUploading }) => {
   const [staged, setStaged] = useState(null);
   const [validationError, setValidationError] = useState('');
 
-  const ALLOWED_TYPES = ['image/png','image/jpeg','image/jpg','image/webp','text/plain','application/pdf'];
+  const ALLOWED_TYPES = [
+    'image/png','image/jpeg','image/jpg','image/webp',
+    'text/plain','application/pdf',
+    'audio/mpeg','audio/wav','audio/mp4','audio/x-m4a','video/mp4','audio/webm'
+  ];
 
   const validate = (file) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setValidationError(`"${file.name}" is not supported. Use PDF, TXT, PNG, or JPG.`);
+      setValidationError(`"${file.name}" is not supported. Use PDF, TXT, PNG, JPG, or Audio/Video.`);
       return false;
     }
     if (file.size > 20 * 1024 * 1024) {
@@ -86,7 +91,7 @@ const UploadZone = ({ onUpload, isUploading }) => {
         <p className="text-sm font-semibold text-slate-300">
           {dragging ? 'Drop it here!' : 'Drag & drop or click to upload'}
         </p>
-        <p className="text-xs text-slate-500 mt-1">PDF · TXT · PNG · JPG · WebP · Max 20 MB</p>
+        <p className="text-xs text-slate-500 mt-1">PDF · TXT · PNG · Audio · Video · Max 20 MB</p>
       </label>
 
       {/* Validation error */}

@@ -1,12 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const Tesseract = require('tesseract.js');
-const geminiProvider = require('./llm/geminiProvider');
+const groqProvider = require('./llm/groqProvider');
+const { transcribeAudio } = require('./audioService');
 
 // Supported MIME types
 const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 const SUPPORTED_TEXT_TYPES  = ['text/plain'];
 const SUPPORTED_PDF_TYPES   = ['application/pdf'];
+const SUPPORTED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'video/mp4', 'audio/webm'];
 
 /**
  * Extract text from an uploaded file.
@@ -52,6 +54,12 @@ const processDocument = async (file) => {
     return text.trim();
   }
 
+  // ── Audio/Video — Whisper Transcription ──────────────────────────
+  if (SUPPORTED_AUDIO_TYPES.includes(mimetype)) {
+    const text = await transcribeAudio(filePath);
+    return text.trim();
+  }
+
   throw new Error(`Unsupported file type: ${mimetype}`);
 };
 
@@ -74,7 +82,7 @@ Rules:
   const prompt = `Summarize the following document:\n\n${text.slice(0, 12000)}`; // cap to avoid token limits
 
   try {
-    const summary = await geminiProvider.generateResponse(prompt, systemInstruction);
+    const summary = await groqProvider.generateResponse(prompt, systemInstruction);
     return summary.trim();
   } catch (err) {
     console.error('[DocumentService] summarizeDocument error:', err.message);
@@ -100,7 +108,7 @@ Rules:
   const prompt = `Document content:\n"""\n${documentText.slice(0, 12000)}\n"""\n\nUser question: ${question}`;
 
   try {
-    const answer = await geminiProvider.generateResponse(prompt, systemInstruction);
+    const answer = await groqProvider.generateResponse(prompt, systemInstruction);
     return answer.trim();
   } catch (err) {
     console.error('[DocumentService] askDocumentQuestion error:', err.message);

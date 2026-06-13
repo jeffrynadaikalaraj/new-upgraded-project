@@ -8,12 +8,27 @@ const MemorySchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['fact', 'preference', 'event', 'insight'],
+    enum: ['fact', 'preference', 'event', 'insight', 'profile', 'summary'],
     required: true,
   },
   content: {
     type: String,
     required: true,
+  },
+  key: {
+    type: String,
+  },
+  value: {
+    type: String,
+  },
+  category: {
+    type: String,
+    enum: ['personal', 'education', 'career', 'health', 'tech', 'lifestyle', 'social', 'general'],
+    default: 'general',
+  },
+  chatId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Chat',
   },
   source: {
     type: String,
@@ -44,5 +59,8 @@ const MemorySchema = new mongoose.Schema({
 MemorySchema.index({ userId: 1 });
 MemorySchema.index({ importance: -1 });
 MemorySchema.index({ createdAt: -1 });
+MemorySchema.index({ userId: 1, key: 1 });
+MemorySchema.index({ userId: 1, category: 1 });
+MemorySchema.index({ userId: 1, type: 1 });
 
 module.exports = mongoose.model('Memory', MemorySchema);

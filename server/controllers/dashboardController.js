@@ -1,7 +1,10 @@
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
 const DailyPlan = require('../models/DailyPlan');
-const geminiProvider = require('../services/llm/geminiProvider');
+const User = require('../models/User');
+const memoryService = require('../services/memoryService');
+const { generateDailyReview } = require('../services/dailyReviewService');
+const groqProvider = require('../services/llm/groqProvider');
 
 // Helper to get past dates
 const getPastDate = (daysAgo) => {
@@ -114,20 +117,37 @@ exports.getDashboardData = async (req, res, next) => {
       Average Weekly Score: ${Math.round(weeklyChart.reduce((sum, d) => sum + d.score, 0) / 7)}
       `;
 
-      aiInsight = await geminiProvider.generateResponse(prompt, systemInstruction);
+      aiInsight = await groqProvider.generateResponse(prompt, systemInstruction);
     } catch (e) {
       console.error('Failed to generate AI insight:', e);
     }
 
+    // 5. Generate / Fetch Daily Review & User Profile
+    const user = await User.findById(userId).select('name');
+    const memories = await memoryService.getUserProfile(userId);
+    const dailyReview = await generateDailyReview(userId);
+
+    // Provide a simple AI suggestion based on context
+    const aiSuggestions = [
+      "Review your upcoming tasks for tomorrow.",
+      "Check your habit streaks."
+    ];
+
     res.status(200).json({
       success: true,
       data: {
+        user: { 
+          name: user ? user.name : 'User',
+          profile: memories
+        },
         stats: {
           activeGoals,
           habitsToday,
           currentStreak,
           plannerScore
         },
+        aiSuggestions,
+        dailyReview,
         weeklyChart,
         recentActivity,
         aiInsight: aiInsight.trim()

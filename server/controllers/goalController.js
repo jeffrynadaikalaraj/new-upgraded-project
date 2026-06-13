@@ -1,5 +1,8 @@
 const Goal = require('../models/Goal');
-const geminiProvider = require('../services/llm/geminiProvider');
+const Habit = require('../models/Habit');
+const Task = require('../models/Task');
+const groqProvider = require('../services/llm/groqProvider');
+const { predictGoalOutcome } = require('../services/predictionService');
 
 // @desc    Get all goals for user
 // @route   GET /api/goals
@@ -165,7 +168,7 @@ exports.generateAiSuggestions = async (req, res, next) => {
 
     const systemInstruction = 'You are AI LifeOS, an expert productivity coach. Respond ONLY with a valid JSON array of strings containing actionable sub-tasks.';
     
-    const aiResponse = await geminiProvider.generateResponse(prompt, systemInstruction);
+    const aiResponse = await groqProvider.generateResponse(prompt, systemInstruction);
     
     let suggestions = [];
     try {
@@ -182,6 +185,31 @@ exports.generateAiSuggestions = async (req, res, next) => {
     await goal.save();
 
     res.status(200).json({ success: true, data: goal });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Generate AI prediction for a goal
+// @route   POST /api/goals/:id/predict
+// @access  Private
+exports.predictGoal = async (req, res, next) => {
+  try {
+    const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!goal) {
+      return res.status(404).json({ success: false, error: 'Goal not found' });
+    }
+
+    const relatedHabits = await Habit.find({ userId: req.user.id, category: goal.category });
+    const relatedTasks = await Task.find({ userId: req.user.id, title: new RegExp(goal.title.split(' ')[0], 'i') });
+
+    const prediction = await predictGoalOutcome(goal, relatedHabits, relatedTasks);
+    
+    // Save prediction to goal
+    goal.prediction = prediction;
+    await goal.save();
+
+    res.status(200).json({ success: true, data: prediction });
   } catch (err) {
     next(err);
   }

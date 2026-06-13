@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Target, Activity, Flame, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
+import { BarChart3, Target, Activity, Flame, Calendar as CalendarIcon, CheckCircle2, Smile } from 'lucide-react';
 import { useAnalyticsStore } from '../stores/analyticsStore';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
 
@@ -59,6 +59,77 @@ const AnimatedBarChart = ({ data, title, icon: Icon, delay }) => {
             </div>
           );
         })}
+      </div>
+    </motion.div>
+  );
+};
+
+const AnimatedLineChart = ({ data, title, icon: Icon, delay }) => {
+  const maxScore = 5; // Mood is out of 5
+  
+  // Calculate points for the SVG polyline
+  const height = 160; // container height matching h-40
+  const width = 100; // relative percentage
+  
+  const points = data.map((item, i) => {
+    const x = (i / Math.max(data.length - 1, 1)) * width;
+    // Mood of 0 means no data, we can treat it as 3 (neutral) for the line, or skip. We'll map 1-5 to Y axis.
+    const effectiveScore = item.mood === 0 ? 3 : item.mood;
+    const y = height - ((effectiveScore / maxScore) * height);
+    return `${x}%,${y}`;
+  }).join(' ');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay, duration: 0.4 }}
+      className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 flex flex-col shadow-xl"
+    >
+      <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
+        <Icon className="text-pink-400" size={20} />
+        {title}
+      </h3>
+      <div className="flex-1 flex flex-col justify-end h-40 relative">
+        <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
+           <motion.polyline
+             initial={{ pathLength: 0, opacity: 0 }}
+             animate={{ pathLength: 1, opacity: 1 }}
+             transition={{ delay: delay + 0.3, duration: 1.5, ease: "easeInOut" }}
+             points={points}
+             fill="none"
+             stroke="#ec4899" // pink-500
+             strokeWidth="3"
+             strokeLinecap="round"
+             strokeLinejoin="round"
+             vectorEffect="non-scaling-stroke"
+           />
+           {data.map((item, i) => {
+             const x = (i / Math.max(data.length - 1, 1)) * 100;
+             const effectiveScore = item.mood === 0 ? 3 : item.mood;
+             const y = height - ((effectiveScore / maxScore) * height);
+             return (
+               <motion.circle
+                 key={i}
+                 initial={{ scale: 0, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 transition={{ delay: delay + 1.5 + (i * 0.1) }}
+                 cx={`${x}%`}
+                 cy={y}
+                 r="4"
+                 fill="#ec4899"
+                 className="drop-shadow-md"
+               />
+             );
+           })}
+        </svg>
+        <div className="flex items-end justify-between mt-4 relative z-10 w-full">
+          {data.map((item, index) => (
+            <div key={index} className="flex-1 text-center">
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{item.day || item.week}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </motion.div>
   );
@@ -236,14 +307,15 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <AnimatedBarChart data={weeklyData} title="Weekly Productivity" icon={Activity} delay={0.5} />
             <AnimatedBarChart data={monthlyData} title="Monthly Trend" icon={CalendarIcon} delay={0.6} />
+            <AnimatedLineChart data={weeklyData} title="Weekly Mood" icon={Smile} delay={0.7} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <GoalDonutChart data={goalsData} delay={0.7} />
-            <HabitPerformanceTable habits={habitsData} delay={0.8} />
+            <GoalDonutChart data={goalsData} delay={0.8} />
+            <HabitPerformanceTable habits={habitsData} delay={0.9} />
           </div>
 
         </div>

@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { useMemoryStore } from '../stores/memoryStore';
 import Button from '../components/ui/Button';
+import MemoryTimeline from '../components/memory/MemoryTimeline';
+import { LayoutGrid, ListTree } from 'lucide-react';
 
 /* ─────────── helpers ─────────── */
 const TYPE_META = {
@@ -164,6 +166,7 @@ const MemoryPage = () => {
   const [typeFilter, setTypeFilter]     = useState('all');
   const [showConfirm, setShowConfirm]   = useState(false);
   const [isClearing, setIsClearing]     = useState(false);
+  const [viewMode, setViewMode]         = useState('timeline'); // 'grid' or 'timeline'
 
   useEffect(() => {
     fetchMemories();
@@ -247,6 +250,24 @@ const MemoryPage = () => {
 
       {/* ── Search + Type Filters ── */}
       <div className="px-8 pb-5 pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-3 relative z-10 border-b border-slate-800">
+        {/* View Toggle */}
+        <div className="flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50 backdrop-blur-md">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+            title="Grid View"
+          >
+            <LayoutGrid size={16} />
+          </button>
+          <button
+            onClick={() => setViewMode('timeline')}
+            className={`p-1.5 rounded-lg transition-all ${viewMode === 'timeline' ? 'bg-slate-700 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+            title="Timeline View"
+          >
+            <ListTree size={16} />
+          </button>
+        </div>
+
         {/* Search */}
         <div className="relative flex-1 min-w-0 max-w-sm">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -341,13 +362,19 @@ const MemoryPage = () => {
           </p>
         )}
 
-        {/* Memory grid */}
+        {/* Memory View */}
         {!isLoading && filtered.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {filtered.map((memory) => (
-              <MemoryCard key={memory._id} memory={memory} onDelete={handleDelete} />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {filtered.map((memory) => (
+                <MemoryCard key={memory._id} memory={memory} onDelete={handleDelete} />
+              ))}
+            </div>
+          ) : (
+            <div className="max-w-3xl mx-auto pt-6">
+              <MemoryTimeline memories={filtered} />
+            </div>
+          )
         )}
       </div>
 

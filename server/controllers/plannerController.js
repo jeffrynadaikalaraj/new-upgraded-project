@@ -2,7 +2,7 @@ const DailyPlan = require('../models/DailyPlan');
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
 const memoryService = require('../services/memoryService');
-const geminiProvider = require('../services/llm/geminiProvider');
+const groqProvider = require('../services/llm/groqProvider');
 
 const calculatePlanScore = (blocks) => {
   if (!blocks || blocks.length === 0) return 0;
@@ -68,7 +68,7 @@ ${memoriesSummary || 'None currently.'}
 Return JSON array only.`;
 
     // 5. Call LLM
-    const responseText = await geminiProvider.generateResponse(prompt, systemInstruction);
+    const responseText = await groqProvider.generateResponse(prompt, systemInstruction);
 
     // 6. Parse JSON
     let blocks = [];

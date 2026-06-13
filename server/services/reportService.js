@@ -5,7 +5,7 @@ const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 const Memory = require('../models/Memory');
 const WeeklyReport = require('../models/WeeklyReport');
-const geminiProvider = require('./llm/geminiProvider');
+const groqProvider = require('./llm/groqProvider');
 
 /**
  * Generates a weekly AI report for a single user.
@@ -149,7 +149,7 @@ Generate the weekly report JSON now.`;
   let recommendations = ['Review your goals at the start of next week.'];
 
   try {
-    const raw = await geminiProvider.generateResponse(prompt, systemInstruction);
+    const raw = await groqProvider.generateResponse(prompt, systemInstruction);
     // Strip any accidental markdown fences
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);

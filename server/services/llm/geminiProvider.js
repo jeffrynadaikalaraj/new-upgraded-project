@@ -38,3 +38,10 @@ exports.generateStream = async (messages, systemInstruction = '') => {
   const result = await chat.sendMessageStream(latestMessage);
   return result.stream;
 };
+
+// Generate vector embedding for a piece of text
+exports.generateEmbedding = async (text) => {
+  const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+  const result = await model.embedContent(text);
+  return result.embedding.values;
+};

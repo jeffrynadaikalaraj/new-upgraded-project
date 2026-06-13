@@ -34,7 +34,24 @@ const DocumentSchema = new mongoose.Schema(
     tags: {
       type: [String],
       default: []
-    }
+    },
+    chunks: [{
+      text: String,
+      chunkIndex: Number,
+      embedding: { type: [Number], select: false } // hide embeddings by default to save memory
+    }],
+    documentType: {
+      type: String,
+      enum: ['general', 'syllabus', 'notes', 'textbook', 'assignment', 'research'],
+      default: 'general'
+    },
+    subject: String,
+    quizzes: [{
+      question: String,
+      options: [String],
+      correctAnswer: Number,
+      explanation: String
+    }]
   },
   { timestamps: true }
 );
