@@ -5,7 +5,7 @@ const groq = new Groq({
   apiKey: config.GROQ_API_KEY
 });
 
-const modelName = 'llama3-8b-8192'; // Using Meta's fast and free model on Groq
+const modelName = 'llama-3.1-8b-instant'; // Using Meta's latest fast model on Groq
 
 // Basic non-streaming call
 exports.generateResponse = async (prompt, systemInstruction = '') => {
