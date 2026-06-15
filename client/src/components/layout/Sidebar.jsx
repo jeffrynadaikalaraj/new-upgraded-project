@@ -33,6 +33,13 @@ const Sidebar = () => {
     loadChatHistory();
   }, []);
 
+  // Close sidebar on mobile when navigating
+  useEffect(() => {
+    if (sidebarOpen && window.innerWidth < 768) {
+      toggleSidebar();
+    }
+  }, [location.pathname]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');

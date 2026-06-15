@@ -6,15 +6,24 @@ const { initCronJobs } = require('./jobs/cronJobs');
 // Connect to database and start cron jobs
 connectDB().then(() => {
   initCronJobs();
-});
+  
+  const server = app.listen(config.PORT, () => {
+    console.log(`Server running in ${config.NODE_ENV} mode on port ${config.PORT}`);
+  });
 
-const server = app.listen(config.PORT, () => {
-  console.log(`Server running in ${config.NODE_ENV} mode on port ${config.PORT}`);
-});
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err, promise) => {
+    console.log(`Error: ${err.message}`);
+    // Close server & exit process
+    server.close(() => process.exit(1));
+  });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (err) => {
+    console.error(`Uncaught Exception: ${err.message}`);
+    process.exit(1);
+  });
+}).catch(err => {
+  console.error(`Failed to connect to DB: ${err.message}`);
+  process.exit(1);
 });

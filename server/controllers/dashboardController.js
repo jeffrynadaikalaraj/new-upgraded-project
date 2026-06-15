@@ -6,6 +6,10 @@ const memoryService = require('../services/memoryService');
 const { generateDailyReview } = require('../services/dailyReviewService');
 const groqProvider = require('../services/llm/groqProvider');
 
+// Simple in-memory caches for expensive LLM generations
+const insightCache = new Map();
+const reviewCache = new Map();
+
 // Helper to get past dates
 const getPastDate = (daysAgo) => {
   const date = new Date();
@@ -108,24 +112,35 @@ exports.getDashboardData = async (req, res, next) => {
     
     // In a real production app we might cache this to save API calls, but for MVP we generate it.
     try {
-      const systemInstruction = `You are AI LifeOS's analytics engine. Provide a SINGLE short, highly actionable sentence (max 15 words) of productivity insight based on the user's weekly data. Make it encouraging but analytical. Do not use markdown.`;
-      const prompt = `
-      User Stats:
-      Active Goals: ${activeGoals}
-      Habits tracked: ${habitsToday}
-      Best current streak: ${currentStreak}
-      Average Weekly Score: ${Math.round(weeklyChart.reduce((sum, d) => sum + d.score, 0) / 7)}
-      `;
+      if (insightCache.has(userId) && insightCache.get(userId).date === today) {
+        aiInsight = insightCache.get(userId).insight;
+      } else {
+        const systemInstruction = `You are AI LifeOS's analytics engine. Provide a SINGLE short, highly actionable sentence (max 15 words) of productivity insight based on the user's weekly data. Make it encouraging but analytical. Do not use markdown.`;
+        const prompt = `
+        User Stats:
+        Active Goals: ${activeGoals}
+        Habits tracked: ${habitsToday}
+        Best current streak: ${currentStreak}
+        Average Weekly Score: ${Math.round(weeklyChart.reduce((sum, d) => sum + d.score, 0) / 7)}
+        `;
 
-      aiInsight = await groqProvider.generateResponse(prompt, systemInstruction);
+        aiInsight = await groqProvider.generateResponse(prompt, systemInstruction);
+        insightCache.set(userId, { insight: aiInsight, date: today });
+      }
     } catch (e) {
       console.error('Failed to generate AI insight:', e);
     }
 
-    // 5. Generate / Fetch Daily Review & User Profile
     const user = await User.findById(userId).select('name');
     const memories = await memoryService.getUserProfile(userId);
-    const dailyReview = await generateDailyReview(userId);
+    
+    let dailyReview;
+    if (reviewCache.has(userId) && reviewCache.get(userId).date === today) {
+      dailyReview = reviewCache.get(userId).review;
+    } else {
+      dailyReview = await generateDailyReview(userId);
+      reviewCache.set(userId, { review: dailyReview, date: today });
+    }
 
     // Provide a simple AI suggestion based on context
     const aiSuggestions = [

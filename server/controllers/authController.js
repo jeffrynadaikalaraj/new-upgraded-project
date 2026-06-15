@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/env');
 const { OAuth2Client } = require('google-auth-library');
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
 
 const sendTokenResponse = (user, statusCode, res) => {
@@ -27,6 +27,18 @@ const sendTokenResponse = (user, statusCode, res) => {
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password, timezone, consent } = req.body;
+
+    if (!name || name.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'Please provide a valid name' });
+    }
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ success: false, error: 'Please provide a valid email address' });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long' });
+    }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -90,7 +102,7 @@ exports.googleLogin = async (req, res, next) => {
 
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: config.GOOGLE_CLIENT_ID,
     });
     
     const payload = ticket.getPayload();

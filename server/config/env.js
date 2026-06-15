@@ -29,5 +29,7 @@ module.exports = {
   GROQ_API_KEY: process.env.GROQ_API_KEY,
   OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
   CHROMA_URL: process.env.CHROMA_URL || 'http://localhost:8000',
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000'
+  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET
 };

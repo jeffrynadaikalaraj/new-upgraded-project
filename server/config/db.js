@@ -3,9 +3,6 @@ const dns = require('dns');
 
 const connectDB = async () => {
   try {
-    // Force Google DNS to bypass local Windows/hotspot DNS issues with SRV records
-    dns.setServers(['8.8.8.8', '1.1.1.1']);
-    console.log(`[DB] Using DNS Servers: ${dns.getServers().join(', ')}`);
 
     const uri = process.env.MONGO_URI;
     if (!uri) {

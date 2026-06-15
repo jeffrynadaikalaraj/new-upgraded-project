@@ -58,6 +58,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
           className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-400 p-4 pr-12 resize-none focus:outline-none scrollbar-thin"
           rows={1}
           disabled={disabled}
+          autoFocus
         />
         <button
           type="submit"

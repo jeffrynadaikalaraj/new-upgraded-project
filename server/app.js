@@ -18,8 +18,8 @@ const app = express();
 // Security and middleware
 app.use(helmet());
 app.use(cors({
-  // In production, only allow requests from the deployed frontend
-  origin: config.NODE_ENV === 'production' ? config.CLIENT_URL : '*',
+  // In production, allow requests from configured frontend origins
+  origin: config.NODE_ENV === 'production' && config.CLIENT_URL ? config.CLIENT_URL.split(',') : '*',
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -29,23 +29,22 @@ if (config.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Apply rate limiter to all routes
-app.use('/api', apiLimiter);
+// Removed global apiLimiter here, applied individually below
 
 // Mount routers with targeted rate limits
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/chat', chatLimiter, chatRoutes);
-app.use('/api/goals', goalRoutes);
-app.use('/api/habits', habitRoutes);
-app.use('/api/memories', memoryRoutes);
-app.use('/api/planner', require('./routes/planner'));
-app.use('/api/dashboard', require('./routes/dashboard'));
-app.use('/api/analytics', require('./routes/analytics'));
-app.use('/api/reports', require('./routes/reports'));
-app.use('/api/users', require('./routes/users'));
+app.use('/api/goals', apiLimiter, goalRoutes);
+app.use('/api/habits', apiLimiter, habitRoutes);
+app.use('/api/memories', apiLimiter, memoryRoutes);
+app.use('/api/planner', apiLimiter, require('./routes/planner'));
+app.use('/api/dashboard', apiLimiter, require('./routes/dashboard'));
+app.use('/api/analytics', apiLimiter, require('./routes/analytics'));
+app.use('/api/reports', apiLimiter, require('./routes/reports'));
+app.use('/api/users', apiLimiter, require('./routes/users'));
 app.use('/api/documents', uploadLimiter, require('./routes/documents'));
-app.use('/api/study', require('./routes/studyRoutes'));
-app.use('/api/calendar', require('./routes/calendar'));
+app.use('/api/study', apiLimiter, require('./routes/studyRoutes'));
+app.use('/api/calendar', apiLimiter, require('./routes/calendar'));
 
 // Basic health route
 app.get('/api/health', (req, res) => {

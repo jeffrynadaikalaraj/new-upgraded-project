@@ -5,6 +5,7 @@ import { useDocumentStore } from '../stores/documentStore';
 import UploadZone from '../components/documents/UploadZone';
 import DocumentCard from '../components/documents/DocumentCard';
 import StudyCompanion from '../components/documents/StudyCompanion';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 // ─── Document Viewer Panel ────────────────────────────────────────────────────
 const DocumentViewer = ({ doc, onClose }) => {
@@ -197,6 +198,8 @@ const DocumentsPage = () => {
     documents, selectedDocument, isLoading, isUploading, error,
     fetchDocuments, uploadDocument, getDocument, selectDocument, deleteDocument, clearError
   } = useDocumentStore();
+  
+  const [docToDelete, setDocToDelete] = useState(null);
 
   useEffect(() => {
     fetchDocuments();
@@ -277,7 +280,7 @@ const DocumentsPage = () => {
                     index={i}
                     isSelected={selectedDocument?._id === doc._id}
                     onClick={() => handleCardClick(doc)}
-                    onDelete={deleteDocument}
+                    onDelete={() => setDocToDelete(doc._id)}
                   />
                 ))}
               </div>
@@ -313,6 +316,16 @@ const DocumentsPage = () => {
         </div>
 
       </div>
+      
+      <ConfirmDialog
+        isOpen={!!docToDelete}
+        onClose={() => setDocToDelete(null)}
+        onConfirm={() => deleteDocument(docToDelete)}
+        title="Delete Document"
+        message="Are you sure you want to delete this document? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+      />
     </div>
   );
 };

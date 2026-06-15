@@ -233,6 +233,12 @@ exports.getUserProfile = async (userId) => {
     const profile = {};
     profileMemories.forEach(m => { if (m.key) profile[m.key] = m.value; });
 
+    if (!profile.name) {
+      const User = require('../models/User');
+      const user = await User.findById(userId).select('name');
+      if (user) profile.name = user.name;
+    }
+
     const prefs = {};
     preferences.forEach(m => { if (m.key) prefs[m.key] = m.value; });
     
