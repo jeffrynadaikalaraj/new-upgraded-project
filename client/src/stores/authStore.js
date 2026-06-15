@@ -57,6 +57,30 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  googleLogin: async (credential) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await api.post('/auth/google', { credential });
+      
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('refreshToken', res.data.refreshToken);
+      
+      set({
+        user: res.data.user,
+        token: res.data.token,
+        isAuthenticated: true,
+        isLoading: false
+      });
+      return true;
+    } catch (err) {
+      set({ 
+        error: err.response?.data?.error || 'Google Login failed',
+        isLoading: false 
+      });
+      return false;
+    }
+  },
+
   register: async (userData) => {
     set({ isLoading: true, error: null });
     try {

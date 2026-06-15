@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../stores/authStore';
 
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error } = useAuthStore();
+  const { login, googleLogin, isLoading, error } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -15,6 +16,13 @@ const LoginPage = () => {
     e.preventDefault();
     const ok = await login(form.email, form.password);
     if (ok) navigate('/chat');
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (credentialResponse.credential) {
+      const ok = await googleLogin(credentialResponse.credential);
+      if (ok) navigate('/chat');
+    }
   };
 
   return (
@@ -49,6 +57,26 @@ const LoginPage = () => {
               {error}
             </div>
           )}
+
+          <div className="mb-6 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => console.log('Google Login Failed')}
+              theme="filled_black"
+              shape="pill"
+              text="signin_with"
+              size="large"
+            />
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-slate-900 text-slate-500">Or sign in with email</span>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
