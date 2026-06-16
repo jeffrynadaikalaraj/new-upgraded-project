@@ -43,7 +43,7 @@ exports.executeLLMStream = async (messages, res, userId, callback) => {
       latestUserMessage = latestUserMessageObj ? latestUserMessageObj.content : '';
       memories = await memoryService.getRelevantMemories(userId, latestUserMessage);
       
-      const userProfile = await memoryService.getUserProfile(userId);
+      const userProfile = (await memoryService.getUserProfile(userId)) || {};
       const name = userProfile?.name || 'the user';
       
       // ── AI Personality Model Injection ──
