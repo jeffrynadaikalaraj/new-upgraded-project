@@ -17,7 +17,7 @@ const priorityDots = {
   critical: 'bg-rose-500'
 };
 
-const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestions, onPredictGoal }) => {
+const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestions, onPredictGoal, onLogActivity }) => {
   const [expanded, setExpanded] = useState(false);
   const colorScheme = categoryColors[goal.category] || categoryColors.other;
   const dotColor = priorityDots[goal.priority] || priorityDots.medium;
@@ -138,6 +138,61 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="mb-5 bg-slate-900/40 rounded-xl border border-slate-700/50 p-4">
+            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Zap size={14} className="text-indigo-400" /> Activity Log
+            </h4>
+            
+            <div className="space-y-3 mb-4">
+              {goal.activityLog?.length === 0 ? (
+                <p className="text-xs text-slate-500 italic">No activity logged yet. Time to get started!</p>
+              ) : (
+                <div className="space-y-3 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                  {[...(goal.activityLog || [])].sort((a,b) => new Date(b.date) - new Date(a.date)).map((activity) => (
+                    <div key={activity._id} className="flex gap-3 text-sm">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                      <div>
+                        <p className="text-slate-300">{activity.text}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">{new Date(activity.date).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target;
+                const text = form.activityText.value;
+                if (!text.trim()) return;
+                // Import useGoalStore from the component if needed, but better pass via props.
+                // Wait, I need to pass onLogActivity as prop.
+                if (onLogActivity) {
+                  onLogActivity(goal._id, { text });
+                  form.reset();
+                }
+              }}
+              className="flex gap-2"
+            >
+              <input
+                name="activityText"
+                type="text"
+                placeholder="Log progress (e.g., 'Scored 50 runs today')"
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                onClick={e => e.stopPropagation()}
+              />
+              <button 
+                type="submit"
+                onClick={e => e.stopPropagation()}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors text-xs font-medium shadow-lg shadow-indigo-500/20"
+              >
+                Log
+              </button>
+            </form>
           </div>
 
           <div className="bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 relative overflow-hidden">

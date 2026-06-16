@@ -8,7 +8,9 @@ const {
   addMilestone,
   updateMilestone,
   generateAiSuggestions,
-  predictGoal
+  predictGoal,
+  logActivity,
+  getActivity
 } = require('../controllers/goalController');
 const { protect } = require('../middleware/auth');
 
@@ -37,5 +39,9 @@ router.route('/:id/ai-suggest')
 
 router.route('/:id/predict')
   .post(predictGoal);
+
+router.route('/:id/activity')
+  .get(getActivity)
+  .post(logActivity);
 
 module.exports = router;

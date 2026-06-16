@@ -105,5 +105,18 @@ export const useGoalStore = create((set, get) => ({
       set({ error: error.response?.data?.error || 'Failed to generate goal prediction' });
       throw error;
     }
+  },
+
+  logActivity: async (goalId, activityData) => {
+    try {
+      const response = await api.post(`/goals/${goalId}/activity`, activityData);
+      set((state) => ({
+        goals: state.goals.map((g) => (g._id === goalId ? response.data.data : g))
+      }));
+      return response.data.data;
+    } catch (error) {
+      set({ error: error.response?.data?.error || 'Failed to log activity' });
+      throw error;
+    }
   }
 }));

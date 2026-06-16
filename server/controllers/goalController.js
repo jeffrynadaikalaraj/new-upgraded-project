@@ -214,3 +214,55 @@ exports.predictGoal = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Log activity for a goal
+// @route   POST /api/goals/:id/activity
+// @access  Private
+exports.logActivity = async (req, res, next) => {
+  try {
+    const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!goal) {
+      return res.status(404).json({ success: false, error: 'Goal not found' });
+    }
+
+    const { text, metric, value } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({ success: false, error: 'Please provide activity text' });
+    }
+
+    const newActivity = {
+      text,
+      date: Date.now()
+    };
+
+    if (metric) newActivity.metric = metric;
+    if (value !== undefined) newActivity.value = value;
+
+    goal.activityLog.push(newActivity);
+    await goal.save();
+
+    res.status(200).json({ success: true, data: goal });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get activity log for a goal
+// @route   GET /api/goals/:id/activity
+// @access  Private
+exports.getActivity = async (req, res, next) => {
+  try {
+    const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!goal) {
+      return res.status(404).json({ success: false, error: 'Goal not found' });
+    }
+
+    // Sort activity log by date descending
+    const sortedActivity = goal.activityLog.sort((a, b) => b.date - a.date);
+
+    res.status(200).json({ success: true, data: sortedActivity });
+  } catch (err) {
+    next(err);
+  }
+};

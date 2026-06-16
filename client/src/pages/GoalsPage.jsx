@@ -3,16 +3,19 @@ import { Target, Plus } from 'lucide-react';
 import { useGoalStore } from '../stores/goalStore';
 import GoalCard from '../components/goals/GoalCard';
 import GoalModal from '../components/goals/GoalModal';
+import GoalWizard from '../components/goals/GoalWizard';
 import Button from '../components/ui/Button';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
+import { goalCategories } from '../data/goalCategories';
 
 const GoalsPage = () => {
-  const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions, predictGoal } = useGoalStore();
+  const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions, predictGoal, logActivity } = useGoalStore();
   
   const [filterStatus, setFilterStatus] = useState('active');
   const [filterCategory, setFilterCategory] = useState('all');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
 
   useEffect(() => {
@@ -21,7 +24,7 @@ const GoalsPage = () => {
 
   const handleOpenNew = () => {
     setEditingGoal(null);
-    setIsModalOpen(true);
+    setIsWizardOpen(true);
   };
 
   const handleOpenEdit = (goal) => {
@@ -37,6 +40,7 @@ const GoalsPage = () => {
         await createGoal(goalData);
       }
       setIsModalOpen(false);
+      setIsWizardOpen(false);
     } catch (err) {
       console.error('Failed to save goal', err);
     }
@@ -92,9 +96,11 @@ const GoalsPage = () => {
           className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 backdrop-blur-md capitalize"
         >
           <option value="all">All Categories</option>
-          <option value="career">Career</option>
+          {goalCategories.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.label}</option>
+          ))}
+          {/* Include legacy options just in case */}
           <option value="health">Health</option>
-          <option value="finance">Finance</option>
           <option value="learning">Learning</option>
           <option value="personal">Personal</option>
           <option value="other">Other</option>
@@ -128,18 +134,26 @@ const GoalsPage = () => {
                 onUpdateMilestone={updateMilestone}
                 onGenerateAiSuggestions={generateAiSuggestions}
                 onPredictGoal={predictGoal}
+                onLogActivity={logActivity}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Editing Modal */}
       <GoalModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSave={handleSaveGoal}
         goal={editingGoal}
+      />
+
+      {/* Creation Wizard */}
+      <GoalWizard
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        onSave={handleSaveGoal}
       />
     </div>
   );

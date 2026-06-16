@@ -14,6 +14,23 @@ const MilestoneSchema = new mongoose.Schema({
   }
 });
 
+const ActivityLogSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+  metric: {
+    type: String, // e.g. "runs", "km", "hours", "reps"
+  },
+  value: {
+    type: Number, // e.g. 50, 5, 2, 20
+  }
+});
+
 const GoalSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -29,8 +46,19 @@ const GoalSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['career', 'health', 'finance', 'learning', 'personal', 'other'],
+    enum: [
+      'sports', 'gym', 'study', 'music', 'technology',
+      'finance', 'creative', 'communication', 'mental_health',
+      'nutrition', 'career', 'travel', 'home', 'personal_growth',
+      'gaming', 'fashion', 'social', 'content_creation',
+      'business', 'certifications', 'pets', 'automotive',
+      // Legacy categories (backward compatibility)
+      'health', 'learning', 'personal', 'other'
+    ],
     default: 'other',
+  },
+  subcategory: {
+    type: String,
   },
   priority: {
     type: String,
@@ -52,6 +80,7 @@ const GoalSchema = new mongoose.Schema({
     type: Date,
   },
   milestones: [MilestoneSchema],
+  activityLog: [ActivityLogSchema],
   aiGenerated: {
     type: Boolean,
     default: false,
