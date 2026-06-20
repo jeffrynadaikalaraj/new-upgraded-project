@@ -92,28 +92,14 @@ export const useGoalStore = create((set, get) => ({
     }
   },
 
-  predictGoal: async (goalId) => {
-    try {
-      // Optimistic loading state could go here if needed
-      const response = await api.post(`/goals/${goalId}/predict`);
-      // Update the specific goal in the list with the prediction data
-      set((state) => ({
-        goals: state.goals.map((g) => (g._id === goalId ? { ...g, prediction: response.data.data } : g))
-      }));
-      return response.data.data;
-    } catch (error) {
-      set({ error: error.response?.data?.error || 'Failed to generate goal prediction' });
-      throw error;
-    }
-  },
-
   logActivity: async (goalId, activityData) => {
     try {
       const response = await api.post(`/goals/${goalId}/activity`, activityData);
+      const updatedGoal = response.data.data;
       set((state) => ({
-        goals: state.goals.map((g) => (g._id === goalId ? response.data.data : g))
+        goals: state.goals.map((g) => (g._id === goalId ? updatedGoal : g))
       }));
-      return response.data.data;
+      return updatedGoal;
     } catch (error) {
       set({ error: error.response?.data?.error || 'Failed to log activity' });
       throw error;

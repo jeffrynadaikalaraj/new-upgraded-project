@@ -8,7 +8,6 @@ const {
   addMilestone,
   updateMilestone,
   generateAiSuggestions,
-  predictGoal,
   logActivity,
   getActivity
 } = require('../controllers/goalController');
@@ -36,9 +35,6 @@ router.route('/:id/milestones/:milestoneId')
 
 router.route('/:id/ai-suggest')
   .post(generateAiSuggestions);
-
-router.route('/:id/predict')
-  .post(predictGoal);
 
 router.route('/:id/activity')
   .get(getActivity)

@@ -9,7 +9,7 @@ import { PageSkeleton } from '../components/common/LoadingSkeleton';
 import { goalCategories } from '../data/goalCategories';
 
 const GoalsPage = () => {
-  const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions, predictGoal, logActivity } = useGoalStore();
+  const { goals, isLoading, fetchGoals, createGoal, updateGoal, updateMilestone, generateAiSuggestions, logActivity } = useGoalStore();
   
   const [filterStatus, setFilterStatus] = useState('active');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -133,7 +133,6 @@ const GoalsPage = () => {
                 onClickEdit={handleOpenEdit}
                 onUpdateMilestone={updateMilestone}
                 onGenerateAiSuggestions={generateAiSuggestions}
-                onPredictGoal={predictGoal}
                 onLogActivity={logActivity}
               />
             ))}

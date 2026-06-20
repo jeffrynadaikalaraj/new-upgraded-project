@@ -1,8 +1,5 @@
 const Goal = require('../models/Goal');
-const Habit = require('../models/Habit');
-const Task = require('../models/Task');
 const groqProvider = require('../services/llm/groqProvider');
-const { predictGoalOutcome } = require('../services/predictionService');
 
 // @desc    Get all goals for user
 // @route   GET /api/goals
@@ -159,25 +156,41 @@ exports.generateAiSuggestions = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Goal not found' });
     }
 
-    const prompt = `As an expert life coach, analyze the following goal and provide 3-5 actionable sub-tasks or milestones to help achieve it. 
-    Format the output as a JSON array of strings. Do not include markdown blocks, just the JSON array.
-    Goal Title: ${goal.title}
-    Goal Description: ${goal.description || 'N/A'}
-    Category: ${goal.category}
-    Priority: ${goal.priority}`;
+    let prompt;
+    if (goal.targetValue && goal.targetMetric) {
+      // Numeric goal — suggest milestone breakpoints
+      const remaining = goal.targetValue - (goal.currentValue || 0);
+      prompt = `As an expert life coach, the user has a goal: "${goal.title}".
+Target: ${goal.targetValue} ${goal.targetMetric}
+Current progress: ${goal.currentValue || 0} ${goal.targetMetric} (${goal.progress}% done)
+Remaining: ${remaining} ${goal.targetMetric}
 
-    const systemInstruction = 'You are AI LifeOS, an expert productivity coach. Respond ONLY with a valid JSON array of strings containing actionable sub-tasks.';
+Provide 3-5 suggested milestones as numeric checkpoints to help them reach the target.
+If they already have milestones, suggest actionable steps instead.
+Existing milestones: ${goal.milestones?.map(m => `${m.title}${m.targetValue ? ` (${m.targetValue} ${goal.targetMetric})` : ''}`).join(', ') || 'None'}
+
+Format the output as a JSON array of strings. Each string should mention the numeric target.
+Example: ["Reach 25 minutes (Beginner)", "Reach 50 minutes (Halfway)", "Reach 75 minutes (Almost There)", "Complete 100 minutes (Goal Achieved!)"]
+Do not include markdown blocks, just the JSON array.`;
+    } else {
+      prompt = `As an expert life coach, analyze the following goal and provide 3-5 actionable sub-tasks or milestones to help achieve it. 
+Format the output as a JSON array of strings. Do not include markdown blocks, just the JSON array.
+Goal Title: ${goal.title}
+Goal Description: ${goal.description || 'N/A'}
+Category: ${goal.category}
+Priority: ${goal.priority}`;
+    }
+
+    const systemInstruction = 'You are AI LifeOS, an expert productivity coach. Respond ONLY with a valid JSON array of strings containing actionable sub-tasks or milestones.';
     
     const aiResponse = await groqProvider.generateResponse(prompt, systemInstruction);
     
     let suggestions = [];
     try {
-        // Clean up potential markdown formatting before parsing
         const cleanResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
         suggestions = JSON.parse(cleanResponse);
     } catch (parseError) {
         console.error('Failed to parse AI suggestions as JSON:', aiResponse);
-        // Fallback: split by newlines if JSON parsing fails
         suggestions = aiResponse.split('\n').map(s => s.replace(/^- /, '').replace(/^• /, '').trim()).filter(s => s.length > 0).slice(0, 5);
     }
 
@@ -190,30 +203,7 @@ exports.generateAiSuggestions = async (req, res, next) => {
   }
 };
 
-// @desc    Generate AI prediction for a goal
-// @route   POST /api/goals/:id/predict
-// @access  Private
-exports.predictGoal = async (req, res, next) => {
-  try {
-    const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!goal) {
-      return res.status(404).json({ success: false, error: 'Goal not found' });
-    }
 
-    const relatedHabits = await Habit.find({ userId: req.user.id, category: goal.category });
-    const relatedTasks = await Task.find({ userId: req.user.id, title: new RegExp(goal.title.split(' ')[0], 'i') });
-
-    const prediction = await predictGoalOutcome(goal, relatedHabits, relatedTasks);
-    
-    // Save prediction to goal
-    goal.prediction = prediction;
-    await goal.save();
-
-    res.status(200).json({ success: true, data: prediction });
-  } catch (err) {
-    next(err);
-  }
-};
 
 // @desc    Log activity for a goal
 // @route   POST /api/goals/:id/activity
@@ -225,22 +215,67 @@ exports.logActivity = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Goal not found' });
     }
 
-    const { text, metric, value } = req.body;
+    const { text, metric, value, type } = req.body;
     
-    if (!text) {
-      return res.status(400).json({ success: false, error: 'Please provide activity text' });
+    if (!text && value === undefined) {
+      return res.status(400).json({ success: false, error: 'Please provide activity text or a value' });
     }
 
     const newActivity = {
-      text,
+      text: text || `Logged ${value} ${metric || 'units'}`,
       date: Date.now()
     };
 
+    if (type) newActivity.type = type;
     if (metric) newActivity.metric = metric;
     if (value !== undefined) newActivity.value = value;
 
+    // ── Auto-increment currentValue & recalculate progress ──
+    if (value !== undefined && typeof value === 'number' && goal.targetValue) {
+      goal.currentValue = (goal.currentValue || 0) + value;
+
+      // Clamp progress to 100
+      goal.progress = Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100));
+
+      // Auto-complete milestones whose targetValue has been reached
+      if (goal.milestones && goal.milestones.length > 0) {
+        goal.milestones.forEach(ms => {
+          if (ms.targetValue && !ms.completed && goal.currentValue >= ms.targetValue) {
+            ms.completed = true;
+            ms.completedAt = Date.now();
+          }
+        });
+      }
+
+      // Auto-complete goal if progress hits 100%
+      if (goal.progress >= 100 && goal.status !== 'completed') {
+        goal.status = 'completed';
+        goal.completedAt = Date.now();
+      }
+    }
+
+    // ── Generate AI feedback with actual progress context ──
+    try {
+      const progressContext = goal.targetValue
+        ? `\nCurrent progress: ${goal.currentValue || 0}/${goal.targetValue} ${goal.targetMetric || 'units'} (${goal.progress}%).`
+        : '';
+
+      const prompt = `You are an encouraging AI life coach. The user just logged a new activity for their goal "${goal.title}" (Category: ${goal.category}, Subcategory: ${goal.subcategory || 'N/A'}).
+The activity they logged is: "${newActivity.text}".
+${type && value !== undefined && metric ? `Specifically, they recorded: ${type} - ${value} ${metric}.` : ''}${progressContext}
+
+Provide a very brief (1-2 sentences max), highly encouraging feedback message that references their actual numeric progress. Do not use markdown, just return the text.`;
+      
+      const systemInstruction = 'You are AI LifeOS, an expert productivity coach. Respond ONLY with a 1-2 sentence feedback string.';
+      const feedback = await groqProvider.generateResponse(prompt, systemInstruction);
+      newActivity.aiFeedback = feedback.replace(/"/g, '').trim();
+    } catch (aiError) {
+      console.error('Failed to generate AI feedback for activity:', aiError);
+    }
+
     goal.activityLog.push(newActivity);
     await goal.save();
+
 
     res.status(200).json({ success: true, data: goal });
   } catch (err) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowLeft, Target, Calendar, ListPlus, Trash2, Search, Zap } from 'lucide-react';
+import { X, ArrowLeft, Target, Calendar, ListPlus, Trash2, Search, Zap, Ruler } from 'lucide-react';
 import Button from '../ui/Button';
 import { goalCategories } from '../../data/goalCategories';
 
@@ -17,9 +17,12 @@ const GoalWizard = ({ isOpen, onClose, onSave }) => {
     description: '',
     priority: 'medium',
     targetDate: '',
+    targetValue: '',
+    targetMetric: '',
     milestones: []
   });
   const [newMilestone, setNewMilestone] = useState('');
+  const [newMilestoneTarget, setNewMilestoneTarget] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -32,9 +35,12 @@ const GoalWizard = ({ isOpen, onClose, onSave }) => {
         description: '',
         priority: 'medium',
         targetDate: '',
+        targetValue: '',
+        targetMetric: '',
         milestones: []
       });
       setNewMilestone('');
+      setNewMilestoneTarget('');
     }
   }, [isOpen]);
 
@@ -64,21 +70,39 @@ const GoalWizard = ({ isOpen, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({
+    const payload = {
       ...formData,
       category: selectedCategoryId,
       subcategory: selectedSubcategory,
       status: 'active'
-    });
+    };
+    // Convert target value to number if provided
+    if (payload.targetValue) {
+      payload.targetValue = Number(payload.targetValue);
+    } else {
+      delete payload.targetValue;
+      delete payload.targetMetric;
+    }
+    // Convert milestone targetValues to numbers
+    payload.milestones = payload.milestones.map(m => ({
+      ...m,
+      targetValue: m.targetValue ? Number(m.targetValue) : undefined
+    }));
+    onSave(payload);
   };
 
   const addMilestone = () => {
     if (!newMilestone.trim()) return;
+    const ms = { title: newMilestone.trim(), completed: false };
+    if (newMilestoneTarget) {
+      ms.targetValue = Number(newMilestoneTarget);
+    }
     setFormData(prev => ({
       ...prev,
-      milestones: [...prev.milestones, { title: newMilestone.trim(), completed: false }]
+      milestones: [...prev.milestones, ms]
     }));
     setNewMilestone('');
+    setNewMilestoneTarget('');
   };
 
   const removeMilestone = (index) => {
@@ -272,6 +296,31 @@ const GoalWizard = ({ isOpen, onClose, onSave }) => {
                 </div>
               </div>
 
+              {/* Target Value & Metric */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Ruler size={14} /> Measurable Target (Optional)
+                </label>
+                <p className="text-xs text-slate-500 mb-3">Set a numeric target to track concrete progress (e.g. 100 minutes, 50 km).</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.targetValue}
+                    onChange={(e) => setFormData({...formData, targetValue: e.target.value})}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                    placeholder="Target value (e.g. 100)"
+                  />
+                  <input
+                    type="text"
+                    value={formData.targetMetric}
+                    onChange={(e) => setFormData({...formData, targetMetric: e.target.value})}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                    placeholder="Unit (e.g. minutes, km)"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <ListPlus size={14} /> Initial Milestones (Optional)
@@ -280,7 +329,14 @@ const GoalWizard = ({ isOpen, onClose, onSave }) => {
                 <div className="space-y-2 mb-3">
                   {formData.milestones.map((m, idx) => (
                     <div key={idx} className="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
-                      <span className="flex-1 text-sm text-slate-200 truncate pl-2">{m.title}</span>
+                      <span className="flex-1 text-sm text-slate-200 truncate pl-2">
+                        {m.title}
+                        {m.targetValue && (
+                          <span className="ml-2 text-xs text-indigo-400 font-medium">
+                            @ {m.targetValue} {formData.targetMetric || 'units'}
+                          </span>
+                        )}
+                      </span>
                       <button 
                         type="button" 
                         onClick={() => removeMilestone(idx)}
@@ -301,6 +357,18 @@ const GoalWizard = ({ isOpen, onClose, onSave }) => {
                     className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
                     placeholder="Add a milestone step..."
                   />
+                  {formData.targetValue && (
+                    <input
+                      type="number"
+                      min="1"
+                      max={formData.targetValue}
+                      value={newMilestoneTarget}
+                      onChange={(e) => setNewMilestoneTarget(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMilestone(); } }}
+                      className="w-28 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                      placeholder={`@ ${formData.targetMetric || 'val'}`}
+                    />
+                  )}
                   <button 
                     type="button"
                     onClick={addMilestone}
