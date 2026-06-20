@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Sparkles, RefreshCw } from 'lucide-react';
+import { Calendar, Sparkles, RefreshCw, Wand2 } from 'lucide-react';
 import { usePlannerStore } from '../stores/plannerStore';
 import Button from '../components/ui/Button';
 import TimeBlock from '../components/planner/TimeBlock';
+import CustomizePlanModal from '../components/planner/CustomizePlanModal';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
 import { motion } from 'framer-motion';
 
@@ -11,6 +12,7 @@ const PlannerPage = () => {
   
   const today = new Date().toISOString().split('T')[0];
   const [currentDate, setCurrentDate] = useState(today);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   useEffect(() => {
     fetchTodayPlan();
@@ -18,6 +20,11 @@ const PlannerPage = () => {
 
   const handleGenerate = async () => {
     await generatePlan(currentDate);
+  };
+
+  const handleCustomGenerate = async (customPrompt, wakeTime, sleepTime, priorityLevel) => {
+    setIsCustomizerOpen(false);
+    await generatePlan(currentDate, customPrompt, wakeTime, sleepTime, priorityLevel);
   };
 
   const handleToggleBlock = async (blockId, completed) => {
@@ -67,6 +74,9 @@ const PlannerPage = () => {
                 <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Score</span>
               </div>
             </div>
+            <Button onClick={() => setIsCustomizerOpen(true)} variant="secondary" icon={Wand2} isLoading={isLoading}>
+              Customize
+            </Button>
             <Button onClick={handleGenerate} variant="secondary" icon={RefreshCw} isLoading={isLoading}>
               Regenerate
             </Button>
@@ -87,9 +97,15 @@ const PlannerPage = () => {
             <p className="text-slate-400 text-sm mb-8">
               AI LifeOS will analyze your active goals, pending milestones, daily habits, and personal preferences to create an optimized schedule for you.
             </p>
-            <Button onClick={handleGenerate} variant="gradient" size="lg" isLoading={isLoading} className="w-full">
-              Generate Today's Plan
-            </Button>
+            <div className="flex gap-4 w-full">
+              <Button onClick={() => setIsCustomizerOpen(true)} variant="secondary" size="lg" className="flex-1">
+                <Wand2 size={18} className="mr-2" />
+                Customize
+              </Button>
+              <Button onClick={handleGenerate} variant="gradient" size="lg" isLoading={isLoading} className="flex-1">
+                Generate Plan
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto">
@@ -115,6 +131,12 @@ const PlannerPage = () => {
           </div>
         )}
       </div>
+
+      <CustomizePlanModal 
+        isOpen={isCustomizerOpen} 
+        onClose={() => setIsCustomizerOpen(false)} 
+        onGenerate={handleCustomGenerate} 
+      />
     </div>
   );
 };

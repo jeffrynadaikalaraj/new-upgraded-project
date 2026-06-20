@@ -16,10 +16,16 @@ export const usePlannerStore = create((set, get) => ({
     }
   },
 
-  generatePlan: async (date) => {
+  generatePlan: async (date, customPrompt = '', wakeTime = '', sleepTime = '', priorityLevel = 'Balanced') => {
     set({ isLoading: true, error: null });
     try {
-      const payload = date ? { date } : {};
+      const payload = { 
+        date: date || undefined,
+        customPrompt,
+        wakeTime,
+        sleepTime,
+        priorityLevel
+      };
       const response = await api.post('/planner/generate', payload);
       set({ todayPlan: response.data.data, isLoading: false });
       return response.data.data;

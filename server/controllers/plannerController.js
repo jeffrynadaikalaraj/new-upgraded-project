@@ -15,7 +15,7 @@ const calculatePlanScore = (blocks) => {
 // @access  Private
 exports.generatePlan = async (req, res, next) => {
   try {
-    const { date } = req.body; // Expects "YYYY-MM-DD"
+    const { date, customPrompt, wakeTime, sleepTime, priorityLevel } = req.body;
     const targetDate = date || new Date().toISOString().split('T')[0];
 
     // 1. Fetch active goals and incomplete milestones
@@ -52,9 +52,22 @@ Each block must have:
 - type: string (must be exactly one of: "habit", "goal_work", "break", "free", "custom")
 - aiNotes: string (brief explanation of why this was scheduled here)
 
-Keep the schedule realistic, include breaks, and respect user preferences (like morning person vs night owl).`;
+Keep the schedule realistic, include breaks, and respect user preferences.
+
+CRITICAL INSTRUCTIONS FOR CUSTOMIZATION:
+If the user provides a custom request or instructions, you MUST prioritize those requests.
+Allocate the requested durations first. Then fill remaining time intelligently.
+Do not ignore explicit time allocations.
+Respect wake and sleep hours.
+Return a complete daily schedule.`;
 
     const prompt = `Create a productive schedule for ${targetDate}.
+
+User Wake Time: ${wakeTime || '07:00'}
+User Sleep Time: ${sleepTime || '23:00'}
+Today's Priority Level: ${priorityLevel || 'Balanced'}
+
+${customPrompt ? `--- USER'S CUSTOM REQUEST FOR TODAY ---\n"${customPrompt}"\nMAKE SURE TO ALLOCATE THESE FIRST.` : ''}
 
 Active Goals:
 ${activeGoalsSummary || 'None currently.'}
