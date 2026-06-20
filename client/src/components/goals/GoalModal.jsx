@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target, Calendar, ListPlus, Trash2 } from 'lucide-react';
+import { X, Target, Calendar, ListPlus } from 'lucide-react';
 import Button from '../ui/Button';
+import { goalCategories } from '../../data/goalCategories';
 
-const CATEGORIES = ['career', 'health', 'finance', 'learning', 'personal', 'other'];
 const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 
 const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'career',
+    category: 'sports',
+    subcategory: '',
     priority: 'medium',
     targetDate: '',
     status: 'active',
@@ -23,7 +24,8 @@ const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
       setFormData({
         title: goal.title || '',
         description: goal.description || '',
-        category: goal.category || 'career',
+        category: goal.category || 'sports',
+        subcategory: goal.subcategory || '',
         priority: goal.priority || 'medium',
         targetDate: goal.targetDate ? new Date(goal.targetDate).toISOString().split('T')[0] : '',
         status: goal.status || 'active',
@@ -34,7 +36,8 @@ const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
       setFormData({
         title: '',
         description: '',
-        category: 'career',
+        category: 'sports',
+        subcategory: '',
         priority: 'medium',
         targetDate: '',
         status: 'active',
@@ -116,13 +119,49 @@ const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category</label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  onChange={(e) => {
+                    const newCategory = e.target.value;
+                    const defaultSub = goalCategories.find(c => c.id === newCategory)?.subcategories[0] || '';
+                    setFormData({...formData, category: newCategory, subcategory: defaultSub});
+                  }}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all capitalize"
                 >
-                  {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {goalCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                  <option value="other">Other</option>
+                  <option value="career">Career</option>
+                  <option value="health">Health</option>
+                  <option value="finance">Finance</option>
+                  <option value="learning">Learning</option>
+                  <option value="personal">Personal</option>
                 </select>
               </div>
               
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subcategory / Focus Area</label>
+                <select
+                  value={formData.subcategory}
+                  onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all"
+                >
+                  {(() => {
+                    const catObj = goalCategories.find(c => c.id === formData.category);
+                    if (!catObj) return <option value={formData.subcategory || 'other'}>{formData.subcategory || 'Other'}</option>;
+                    const subs = catObj.subcategories || [];
+                    if (formData.subcategory && !subs.includes(formData.subcategory)) {
+                      return (
+                        <>
+                          <option value={formData.subcategory}>{formData.subcategory}</option>
+                          {subs.map(s => <option key={s} value={s}>{s}</option>)}
+                        </>
+                      );
+                    }
+                    return subs.map(s => <option key={s} value={s}>{s}</option>);
+                  })()}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Priority</label>
                 <select
@@ -151,17 +190,31 @@ const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
               
               {goal && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-all capitalize"
-                  >
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="paused">Paused</option>
-                    <option value="abandoned">Abandoned</option>
-                  </select>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Is the goal finished?</label>
+                  <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-1 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, status: 'active'})}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                        formData.status !== 'completed'
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      No (Active)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, status: 'completed'})}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                        formData.status === 'completed'
+                          ? 'bg-emerald-600 text-white shadow-md'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      Yes (Finished)
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -175,13 +228,6 @@ const GoalModal = ({ isOpen, onClose, onSave, goal = null }) => {
                 {formData.milestones.map((m, idx) => (
                   <div key={idx} className="flex items-center gap-2 bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
                     <span className="flex-1 text-sm text-slate-200 truncate pl-2">{m.title}</span>
-                    <button 
-                      type="button" 
-                      onClick={() => removeMilestone(idx)}
-                      className="text-slate-500 hover:text-rose-400 transition-colors p-1"
-                    >
-                      <Trash2 size={14} />
-                    </button>
                   </div>
                 ))}
               </div>
