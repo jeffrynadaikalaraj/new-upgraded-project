@@ -19,7 +19,7 @@ const ProductivityHeader = ({ analytics }) => {
       <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
         <div>
           <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Scheduled</p>
-          <p className="text-2xl font-bold text-indigo-400">{analytics.scheduledHours} <span className="text-sm font-normal text-slate-500">hrs</span></p>
+          <p className="text-2xl font-bold text-indigo-400">{analytics.todayScheduledHours || 0} <span className="text-sm font-normal text-slate-500">hrs</span></p>
         </div>
         <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
           <Clock className="text-indigo-500" size={20} />
@@ -29,7 +29,7 @@ const ProductivityHeader = ({ analytics }) => {
       <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
         <div>
           <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Completed</p>
-          <p className="text-2xl font-bold text-blue-400">{analytics.completedTasks} <span className="text-sm font-normal text-slate-500">tasks</span></p>
+          <p className="text-2xl font-bold text-blue-400">{analytics.todayCompletedTasks || 0} <span className="text-sm font-normal text-slate-500">tasks</span></p>
         </div>
         <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
           <CheckCircle2 className="text-blue-500" size={20} />
@@ -39,7 +39,7 @@ const ProductivityHeader = ({ analytics }) => {
       <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
         <div>
           <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Free Time</p>
-          <p className="text-2xl font-bold text-amber-400">{analytics.freeTime} <span className="text-sm font-normal text-slate-500">hrs</span></p>
+          <p className="text-2xl font-bold text-amber-400">{analytics.freeTime?.today || 0} <span className="text-sm font-normal text-slate-500">hrs</span></p>
         </div>
         <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
           <ListTodo className="text-amber-500" size={20} />
