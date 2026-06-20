@@ -43,6 +43,11 @@ exports.generateWeeklySchedule = async (userId, startDate, promptText) => {
 
   const systemInstruction = `You are a premium AI Calendar Assistant. Your task is to generate a structured weekly schedule (7 days) starting from ${startDate} based on the user's prompt.
 Respond ONLY with a valid JSON array of event objects. Do NOT include markdown blocks.
+
+CRITICAL INSTRUCTION: Intelligent Time Blocking
+If the user asks to "Study Java 10 hours this week", you must break this down into multiple 1.5 to 2-hour sessions spread across the week to total 10 hours.
+Do not schedule a single 10-hour block. Avoid conflicts with typical sleep times.
+
 Each object must have:
 - title: string
 - description: string

@@ -18,6 +18,18 @@ export const useCalendarStore = create((set) => ({
     }
   },
 
+  generateWeekly: async (startDate, prompt) => {
+    set({ isLoading: true });
+    try {
+      const response = await api.post('/calendar/generate-week', { startDate, prompt });
+      set({ isLoading: false });
+      return response.data; // returns array of proposed events
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Failed to generate weekly schedule', isLoading: false });
+      return null;
+    }
+  },
+
   createEvent: async (eventData, ignoreConflict = false) => {
     set({ isLoading: true, error: null, conflictWarning: null });
     try {

@@ -39,13 +39,19 @@ const EventSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  referenceId: {
-    type: mongoose.Schema.Types.ObjectId, // Can point to a Goal, Habit, or DailyPlan Block
+  goalId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Goal',
+    default: null
   },
-  referenceType: {
-    type: String,
-    enum: ['Goal', 'Habit', 'DailyPlan', null],
-    default: null,
+  habitId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Habit',
+    default: null
+  },
+  focusTimeSpent: {
+    type: Number, // in minutes
+    default: 0
   },
   recurrenceRule: {
     type: String, // e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR"
