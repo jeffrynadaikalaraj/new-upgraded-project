@@ -1,4 +1,4 @@
-const groqProvider = require('../groqProvider');
+const groqProvider = require('../llm/groqProvider');
 const memoryService = require('../memoryService');
 
 exports.generateDailySchedule = async (userId, targetDate, promptText) => {
