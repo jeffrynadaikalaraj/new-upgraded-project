@@ -22,9 +22,17 @@ const speakText = (text) => {
   utterance.rate = 1.0;
   utterance.pitch = 1.0;
   
-  // Try to find a good female/assistant voice
+  // Select voice based on theme
+  const theme = useChatStore.getState().avatarTheme;
   const voices = window.speechSynthesis.getVoices();
-  const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Female'));
+  
+  let preferredVoice;
+  if (theme === 'male' || theme === 'jarvis') {
+    preferredVoice = voices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Mark'));
+  } else {
+    preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Female'));
+  }
+
   if (preferredVoice) utterance.voice = preferredVoice;
 
   window.speechSynthesis.cancel(); // Stop current speaking
@@ -37,6 +45,14 @@ export const useChatStore = create((set, get) => ({
   chatHistory: [],
   isStreaming: false,
   isLoadingHistory: false,
+  
+  // Avatar States
+  avatarTheme: 'female', // 'female', 'male', 'jarvis', 'cyber', 'minimal', 'anime'
+  avatarEmotion: 'neutral', // 'neutral', 'happy', 'concerned', 'thinking', 'listening'
+  isUserTyping: false,
+  setAvatarTheme: (theme) => set({ avatarTheme: theme }),
+  setAvatarEmotion: (emotion) => set({ avatarEmotion: emotion }),
+  setIsUserTyping: (isTyping) => set({ isUserTyping: isTyping }),
 
   loadChatHistory: async () => {
     set({ isLoadingHistory: true });

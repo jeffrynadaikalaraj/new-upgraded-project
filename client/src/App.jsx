@@ -27,8 +27,13 @@ const Placeholder = ({ title }) => (
 );
 
 // Dashboard layout wrapper
+import { useLocation } from 'react-router-dom';
+import AIAvatar from './components/chat/AIAvatar';
+
 const AppLayout = ({ children }) => {
   const { toggleSidebar } = useUIStore();
+  const location = useLocation();
+  const isChatPage = location.pathname === '/chat';
   
   return (
     <div className="flex h-screen w-full bg-slate-900 text-slate-100 overflow-hidden relative">
@@ -42,6 +47,15 @@ const AppLayout = ({ children }) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
         </button>
         {children}
+
+        {/* Floating Avatar for non-chat pages */}
+        {!isChatPage && (
+          <div className="absolute bottom-6 right-6 z-50 pointer-events-none group">
+            <div className="pointer-events-auto cursor-pointer transition-transform hover:scale-110 shadow-2xl rounded-full bg-slate-900/80 backdrop-blur border border-slate-700 p-2">
+              <AIAvatar size="small" />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

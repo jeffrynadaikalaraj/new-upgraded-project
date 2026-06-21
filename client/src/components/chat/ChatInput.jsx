@@ -1,16 +1,38 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import VoiceButton from './VoiceButton';
+import { useChatStore } from '../../stores/chatStore';
 
 const ChatInput = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const { setIsUserTyping } = useChatStore();
+
+  const handleMessageChange = (e) => {
+    setMessage(e.target.value);
+    
+    // Set typing state to true
+    setIsUserTyping(true);
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set new timeout to clear typing state after 1.5s of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsUserTyping(false);
+    }, 1500);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
       onSendMessage(message);
       setMessage('');
+      setIsUserTyping(false);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -31,19 +53,22 @@ const ChatInput = ({ onSendMessage, disabled }) => {
   };
 
   const handleVoiceTranscript = useCallback((transcript, isFinal) => {
-    // If it's final, we could auto-send, or just append it to the message.
-    // Let's replace the current message with the transcript for simplicity.
     setMessage(prev => isFinal ? transcript + ' ' : transcript);
+    if (isFinal) setIsUserTyping(false);
+    else setIsUserTyping(true);
+    
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
-    // Auto send if final (Optional, uncomment below to auto-send)
-    // if (isFinal && transcript.trim() && !disabled) {
-    //   onSendMessage(transcript);
-    //   setMessage('');
-    // }
-  }, [disabled, onSendMessage]);
+  }, [disabled, onSendMessage, setIsUserTyping]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      setIsUserTyping(false);
+    };
+  }, [setIsUserTyping]);
 
   return (
     <form onSubmit={handleSubmit} className="relative w-full max-w-4xl mx-auto flex items-end gap-2 p-4">
@@ -51,7 +76,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
         <textarea
           ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleMessageChange}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           placeholder="Type your message here..."
