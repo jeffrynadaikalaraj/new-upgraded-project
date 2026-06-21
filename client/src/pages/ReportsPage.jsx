@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileBarChart, Sparkles, Zap, CheckCircle2, AlertTriangle,
-  Lightbulb, ChevronDown, ChevronUp, Calendar, RefreshCw
+  Lightbulb, ChevronDown, ChevronUp, Calendar, RefreshCw, Download
 } from 'lucide-react';
 import { useReportStore } from '../stores/reportStore';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
@@ -201,15 +201,26 @@ const ReportsPage = () => {
           </h1>
           <p className="text-slate-400 mt-1 text-sm">AI-powered weekly productivity reviews.</p>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex-shrink-0"
-        >
-          {isGenerating
-            ? <><RefreshCw size={16} className="animate-spin" /> Generating...</>
-            : <><Sparkles size={16} /> Generate Report</>}
-        </button>
+        <div className="flex items-center gap-3 flex-shrink-0 print:hidden">
+          {latestReport && (
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all border border-slate-700/50 shadow-lg"
+            >
+              <Download size={16} />
+              Download PDF
+            </button>
+          )}
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+          >
+            {isGenerating
+              ? <><RefreshCw size={16} className="animate-spin" /> Generating...</>
+              : <><Sparkles size={16} /> Generate Report</>}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-8 pt-6 relative z-10 custom-scrollbar">

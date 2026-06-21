@@ -10,6 +10,7 @@ const {
   askQuestion
 } = require('../controllers/documentController');
 const { protect } = require('../middleware/auth');
+const { uploadLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 router.use(protect);
@@ -32,7 +33,7 @@ const upload = multer({
   }
 });
 
-router.post('/upload', upload.single('file'), uploadDocument);
+router.post('/upload', uploadLimiter, upload.single('file'), uploadDocument);
 router.get('/', getDocuments);
 router.get('/:id', getDocument);
 router.delete('/:id', deleteDocument);

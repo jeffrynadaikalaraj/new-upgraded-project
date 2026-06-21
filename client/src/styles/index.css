@@ -45,3 +45,11 @@
     @apply bg-white/20 rounded-full hover:bg-white/30 transition-colors;
   }
 }
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #0f172a !important;
+  }
+}

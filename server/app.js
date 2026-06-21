@@ -42,7 +42,7 @@ app.use('/api/dashboard', apiLimiter, require('./routes/dashboard'));
 app.use('/api/analytics', apiLimiter, require('./routes/analytics'));
 app.use('/api/reports', apiLimiter, require('./routes/reports'));
 app.use('/api/users', apiLimiter, require('./routes/users'));
-app.use('/api/documents', uploadLimiter, require('./routes/documents'));
+app.use('/api/documents', apiLimiter, require('./routes/documents'));
 app.use('/api/study', apiLimiter, require('./routes/studyRoutes'));
 app.use('/api/calendar', apiLimiter, require('./routes/calendar'));
 
