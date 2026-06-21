@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileBarChart, Sparkles, Zap, CheckCircle2, AlertTriangle,
-  Lightbulb, ChevronDown, ChevronUp, Calendar, RefreshCw, Download
+  Lightbulb, ChevronDown, ChevronUp, Calendar, RefreshCw, Download, FileText
 } from 'lucide-react';
 import { useReportStore } from '../stores/reportStore';
+import { useAuthStore } from '../stores/authStore';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -165,9 +166,63 @@ const EmptyState = ({ onGenerate, isGenerating }) => (
   </motion.div>
 );
 
+// ─── Printable Text Report ────────────────────────────────────────────────────
+const PrintableReport = ({ report, user }) => {
+  if (!report) return null;
+  return (
+    <div className="hidden print:block p-10 bg-white text-black font-serif max-w-4xl mx-auto w-full">
+      <div className="border-b-2 border-black pb-6 mb-8">
+        <h1 className="text-4xl font-bold mb-4">Weekly Productivity Report</h1>
+        <div className="text-lg">
+          <p className="font-semibold">{user?.name || 'User'}</p>
+          <p className="text-gray-600">{user?.email || ''}</p>
+        </div>
+        <div className="text-gray-500 mt-4 text-sm">
+          <p>Generated on: {new Date().toLocaleDateString()}</p>
+          <p>Report Period: {formatDateRange(report.weekStartDate, report.weekEndDate)}</p>
+        </div>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Executive Summary</h2>
+        <p className="text-base leading-relaxed mb-4">{report.summary}</p>
+        <p className="text-lg font-bold">Overall Productivity Score: {report.productivityScore}%</p>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Highlights</h2>
+        <ul className="list-disc pl-6 space-y-3">
+          {report.highlights.map((item, i) => (
+            <li key={i} className="text-base leading-relaxed">{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Areas to Improve</h2>
+        <ul className="list-disc pl-6 space-y-3">
+          {report.improvements.map((item, i) => (
+            <li key={i} className="text-base leading-relaxed">{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Recommendations</h2>
+        <ul className="list-disc pl-6 space-y-3">
+          {report.recommendations.map((item, i) => (
+            <li key={i} className="text-base leading-relaxed">{item}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const ReportsPage = () => {
   const { latestReport, reports, isLoading, isGenerating, fetchLatestReport, fetchReports, generateReport } = useReportStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     fetchLatestReport();
@@ -182,18 +237,63 @@ const ReportsPage = () => {
     }
   };
 
+  const handleDownloadText = () => {
+    if (!latestReport) return;
+    
+    const textContent = `
+WEEKLY PRODUCTIVITY REPORT
+==========================
+User: ${user?.name || 'User'} (${user?.email || ''})
+Generated on: ${new Date().toLocaleDateString()}
+Report Period: ${formatDateRange(latestReport.weekStartDate, latestReport.weekEndDate)}
+
+EXECUTIVE SUMMARY
+-----------------
+${latestReport.summary}
+
+Overall Productivity Score: ${latestReport.productivityScore}%
+
+HIGHLIGHTS
+----------
+${latestReport.highlights.map(h => \`• \${h}\`).join('\n')}
+
+AREAS TO IMPROVE
+----------------
+${latestReport.improvements.map(i => \`• \${i}\`).join('\n')}
+
+RECOMMENDATIONS
+---------------
+${latestReport.recommendations.map(r => \`• \${r}\`).join('\n')}
+    `.trim();
+
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = \`Weekly_Report_\${new Date().toISOString().split('T')[0]}.txt\`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return <PageSkeleton title="Weekly Reports" showHeader={false} />;
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-slate-900 w-full relative">
+    <div className="flex flex-col h-full overflow-hidden bg-slate-900 w-full relative print:h-auto print:overflow-visible print:bg-white">
       {/* Background blobs */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none print:hidden" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl pointer-events-none print:hidden" />
 
-      {/* Header */}
-      <div className="flex items-center justify-between p-8 pb-4 relative z-10 border-b border-slate-800 flex-shrink-0">
+      {/* The Printable Plain Text Document */}
+      <PrintableReport report={latestReport} user={user} />
+
+      {/* The Visual UI (Hidden in Print) */}
+      <div className="flex flex-col h-full w-full print:hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-8 pb-4 relative z-10 border-b border-slate-800 flex-shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <FileBarChart className="text-indigo-400" size={32} />
@@ -203,13 +303,22 @@ const ReportsPage = () => {
         </div>
         <div className="flex items-center gap-3 flex-shrink-0 print:hidden">
           {latestReport && (
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all border border-slate-700/50 shadow-lg"
-            >
-              <Download size={16} />
-              Download PDF
-            </button>
+            <>
+              <button
+                onClick={handleDownloadText}
+                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all border border-slate-700/50 shadow-sm"
+              >
+                <FileText size={16} />
+                Download .TXT
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all border border-slate-700/50 shadow-sm"
+              >
+                <Download size={16} />
+                Print PDF
+              </button>
+            </>
           )}
           <button
             onClick={handleGenerate}
@@ -223,8 +332,8 @@ const ReportsPage = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 pt-6 relative z-10 custom-scrollbar">
-        <div className="max-w-5xl mx-auto">
+        <div className="flex-1 overflow-y-auto p-8 pt-6 relative z-10 custom-scrollbar">
+          <div className="max-w-5xl mx-auto">
 
           {/* No reports yet */}
           {!latestReport && !isGenerating && <EmptyState onGenerate={handleGenerate} isGenerating={isGenerating} />}
@@ -293,6 +402,7 @@ const ReportsPage = () => {
             </div>
           )}
 
+          </div>
         </div>
       </div>
     </div>

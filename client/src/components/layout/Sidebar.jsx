@@ -63,7 +63,7 @@ const Sidebar = () => {
       )}
       
       <aside
-        className={`absolute md:relative z-50 flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out flex-shrink-0 ${
+        className={`absolute md:relative z-50 flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out flex-shrink-0 print:hidden ${
           sidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full md:translate-x-0 md:w-16'
         }`}
       >
