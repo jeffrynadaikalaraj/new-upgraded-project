@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Layout
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
 import { useUIStore } from './stores/uiStore';
+import AIAvatar from './components/chat/AIAvatar';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -27,9 +28,6 @@ const Placeholder = ({ title }) => (
 );
 
 // Dashboard layout wrapper
-import { useLocation } from 'react-router-dom';
-import AIAvatar from './components/chat/AIAvatar';
-
 const AppLayout = ({ children }) => {
   const { toggleSidebar } = useUIStore();
   const location = useLocation();

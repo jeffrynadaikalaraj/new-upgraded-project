@@ -2,11 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import { useChatStore } from '../../stores/chatStore';
+import { useAuthStore } from '../../stores/authStore';
 import AIAvatar from './AIAvatar';
 import { Calendar, Target, Activity, BarChart2, Mic } from 'lucide-react';
 
 const ChatWindow = () => {
   const { messages, isStreaming } = useChatStore();
+  const { user } = useAuthStore();
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
@@ -34,7 +36,7 @@ const ChatWindow = () => {
           <div className="mb-8">
             <AIAvatar size="large" />
           </div>
-          <h2 className="text-4xl font-bold text-white mb-2 tracking-tight">Hello Jeffryn.</h2>
+          <h2 className="text-4xl font-bold text-white mb-2 tracking-tight">Hello {user?.name ? user.name.split(' ')[0] : 'User'}.</h2>
           <p className="text-slate-400 max-w-md mb-10 text-lg">
             I'm your personal AI companion. How can I help you dominate your day?
           </p>

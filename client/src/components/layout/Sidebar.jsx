@@ -120,7 +120,7 @@ const Sidebar = () => {
 
       {/* Chat History */}
       {sidebarOpen && (
-        <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+        <div className="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-0.5">
           <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold px-2 mb-2 pt-1">History</p>
           {chatHistory.length === 0 && (
             <p className="text-xs text-slate-600 px-3 py-2">No conversations yet</p>
