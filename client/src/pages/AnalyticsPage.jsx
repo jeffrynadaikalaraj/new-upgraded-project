@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart3, Target, Activity, Flame, Calendar as CalendarIcon, CheckCircle2, Smile } from 'lucide-react';
 import { useAnalyticsStore } from '../stores/analyticsStore';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
@@ -136,6 +136,8 @@ const AnimatedLineChart = ({ data, title, icon: Icon, delay }) => {
 };
 
 const GoalDonutChart = ({ data, delay }) => {
+  const [hoveredSegment, setHoveredSegment] = useState(null);
+
   const categoryColors = {
     career: '#3b82f6', // blue-500
     health: '#10b981', // emerald-500
@@ -156,12 +158,14 @@ const GoalDonutChart = ({ data, delay }) => {
     ? `conic-gradient(${pieSegments.join(', ')})`
     : 'conic-gradient(#334155 0% 100%)';
 
+  const activeData = hoveredSegment ? data.find(d => d.category === hoveredSegment) : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, duration: 0.4 }}
-      className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center gap-8"
+      className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center gap-8 hover:shadow-indigo-500/10 transition-shadow"
     >
       <div className="flex-1 w-full">
         <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
@@ -172,19 +176,57 @@ const GoalDonutChart = ({ data, delay }) => {
           {data.length === 0 ? (
              <p className="text-slate-500 text-sm">No goals data available.</p>
           ) : data.map((d, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: categoryColors[d.category] }} />
-                <span className="text-sm text-slate-300 capitalize">{d.category}</span>
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: delay + 0.2 + i * 0.1 }}
+              onMouseEnter={() => setHoveredSegment(d.category)}
+              onMouseLeave={() => setHoveredSegment(null)}
+              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${hoveredSegment === d.category ? 'bg-slate-700/50' : 'hover:bg-slate-700/30'}`}
+            >
+              <div className="flex items-center gap-3">
+                <div 
+                  className={`w-3 h-3 rounded-full transition-transform ${hoveredSegment === d.category ? 'scale-125' : ''}`} 
+                  style={{ backgroundColor: categoryColors[d.category], boxShadow: hoveredSegment === d.category ? `0 0 10px ${categoryColors[d.category]}` : 'none' }} 
+                />
+                <span className={`text-sm capitalize transition-colors ${hoveredSegment === d.category ? 'text-white font-medium' : 'text-slate-300'}`}>{d.category}</span>
               </div>
-              <span className="text-sm font-bold text-slate-100">{d.percentage}%</span>
-            </div>
+              <span className={`text-sm font-bold transition-colors ${hoveredSegment === d.category ? 'text-white' : 'text-slate-100'}`}>{d.percentage}%</span>
+            </motion.div>
           ))}
         </div>
       </div>
-      <div className="relative w-48 h-48 rounded-full flex-shrink-0" style={{ background: backgroundStr }}>
-        <div className="absolute inset-4 bg-slate-900 rounded-full flex items-center justify-center">
-          <span className="text-slate-400 text-sm font-medium">Goals</span>
+      <div 
+        className="relative w-48 h-48 rounded-full flex-shrink-0 shadow-[0_0_30px_rgba(0,0,0,0.3)] transition-all duration-300 group" 
+        style={{ background: backgroundStr }}
+      >
+        <div className="absolute inset-4 bg-slate-900 rounded-full flex flex-col items-center justify-center transition-all duration-300 overflow-hidden">
+          <AnimatePresence mode="wait">
+            {activeData ? (
+              <motion.div
+                key={activeData.category}
+                initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col items-center"
+              >
+                <span className="text-3xl font-black" style={{ color: categoryColors[activeData.category] }}>{activeData.percentage}%</span>
+                <span className="text-xs font-medium text-slate-400 capitalize mt-1 tracking-wider">{activeData.category}</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="default"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="text-slate-400 text-sm font-medium tracking-widest uppercase">Goals</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>
@@ -193,41 +235,78 @@ const GoalDonutChart = ({ data, delay }) => {
 
 const HabitPerformanceTable = ({ habits, delay }) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
     transition={{ delay, duration: 0.4 }}
-    className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl overflow-hidden"
+    className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-xl overflow-hidden hover:shadow-emerald-500/5 transition-shadow flex flex-col"
   >
     <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
       <CheckCircle2 className="text-emerald-400" size={20} />
       Habit Performance
     </h3>
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto flex-1">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b border-slate-700/50">
             <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Habit</th>
-            <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Completion %</th>
-            <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Current Streak</th>
+            <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider w-1/3">Completion</th>
+            <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Streak</th>
           </tr>
         </thead>
         <tbody>
           {habits.length === 0 ? (
             <tr>
-              <td colSpan="3" className="py-8 text-center text-slate-500 text-sm">No active habits found.</td>
+              <td colSpan="3" className="py-12">
+                <div className="flex flex-col items-center justify-center text-slate-500">
+                  <Activity size={32} className="mb-3 opacity-50" />
+                  <p className="text-sm font-medium">No active habits yet.</p>
+                  <p className="text-xs mt-1">Start tracking to see your progress!</p>
+                </div>
+              </td>
             </tr>
           ) : (
-            habits.map((habit, idx) => (
-              <tr key={idx} className="border-b border-slate-700/30 last:border-0 hover:bg-slate-800/30 transition-colors">
-                <td className="py-3 text-sm font-medium text-slate-200">{habit.title}</td>
-                <td className="py-3 text-sm text-slate-300 text-right">
-                  <span className={`px-2 py-1 rounded border ${habit.completionRate >= 80 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : habit.completionRate >= 50 ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-                    {habit.completionRate}%
-                  </span>
-                </td>
-                <td className="py-3 text-sm font-bold text-orange-400 text-right">{habit.streak}</td>
-              </tr>
-            ))
+            habits.map((habit, idx) => {
+              const isHigh = habit.completionRate >= 80;
+              const isMed = habit.completionRate >= 50;
+              const colorClass = isHigh ? 'bg-emerald-500' : isMed ? 'bg-indigo-500' : 'bg-slate-500';
+              const textClass = isHigh ? 'text-emerald-400' : isMed ? 'text-indigo-400' : 'text-slate-400';
+              const hasStreak = habit.streak > 0;
+
+              return (
+                <motion.tr 
+                  key={idx}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: delay + 0.2 + idx * 0.1 }}
+                  className="border-b border-slate-700/30 last:border-0 hover:bg-slate-700/40 transition-all duration-300 group"
+                >
+                  <td className="py-4 px-2 text-sm font-medium text-slate-200 group-hover:text-white transition-colors rounded-l-lg">{habit.title}</td>
+                  <td className="py-4 px-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden shadow-inner">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${habit.completionRate}%` }}
+                          transition={{ delay: delay + 0.5 + idx * 0.1, duration: 0.8, type: "spring" }}
+                          className={`h-full rounded-full ${colorClass} shadow-[0_0_10px_currentColor]`}
+                        />
+                      </div>
+                      <span className={`text-xs font-bold w-8 text-right ${textClass}`}>{habit.completionRate}%</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-2 text-right rounded-r-lg">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Flame 
+                        size={16} 
+                        className={`transition-all duration-300 ${hasStreak ? 'text-orange-500 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]' : 'text-slate-600'}`} 
+                        fill={hasStreak ? 'currentColor' : 'none'}
+                      />
+                      <span className={`text-sm font-bold ${hasStreak ? 'text-orange-400' : 'text-slate-500'}`}>{habit.streak}</span>
+                    </div>
+                  </td>
+                </motion.tr>
+              );
+            })
           )}
         </tbody>
       </table>
