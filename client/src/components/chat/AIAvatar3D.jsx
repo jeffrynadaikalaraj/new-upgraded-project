@@ -1,8 +1,23 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Float, ContactShadows, useGLTF } from '@react-three/drei';
+import { Environment, Float, ContactShadows, useGLTF, Html, useProgress } from '@react-three/drei';
 import { useChatStore } from '../../stores/chatStore';
 import * as THREE from 'three';
+
+// --- Loading Screen ---
+function Loader() {
+  const { progress } = useProgress();
+  return (
+    <Html center>
+      <div className="flex flex-col items-center justify-center p-4 bg-slate-900/80 rounded-xl backdrop-blur-md border border-slate-700/50">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+        <p className="text-indigo-400 font-semibold text-sm whitespace-nowrap">
+          Loading Avatar... {progress.toFixed(0)}%
+        </p>
+      </div>
+    </Html>
+  );
+}
 
 // --- Error Boundary to prevent crashes if URL is dead ---
 class AvatarErrorBoundary extends React.Component {
@@ -17,9 +32,9 @@ class AvatarErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <group position={[0, 0, 0]}>
+        <group position={[0, -0.5, 0]}>
           <mesh castShadow receiveShadow>
-            <sphereGeometry args={[1.2, 64, 64]} />
+            <sphereGeometry args={[0.5, 64, 64]} />
             <meshStandardMaterial color="#fca5a5" roughness={0.2} metalness={0.1} />
           </mesh>
         </group>
@@ -102,7 +117,7 @@ const AIAvatar3D = () => {
         <pointLight position={[-5, 0, 5]} intensity={1} color="#4f46e5" />
         
         <AvatarErrorBoundary>
-          <React.Suspense fallback={null}>
+          <React.Suspense fallback={<Loader />}>
             <AvatarModel />
           </React.Suspense>
         </AvatarErrorBoundary>
