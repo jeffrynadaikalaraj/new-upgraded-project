@@ -4,7 +4,7 @@ export const useUIStore = create((set) => ({
   sidebarOpen: true,
   currentPage: 'dashboard',
   theme: 'dark',
-  avatarEmotion: 'idle', // idle, thinking, speaking, listening, happy, concerned
+  avatarEmotion: 'idle', // idle, thinking, speaking, listening, happy, concerned, excited, error
   notifications: [],
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),

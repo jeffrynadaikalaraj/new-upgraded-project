@@ -255,15 +255,15 @@ Overall Productivity Score: ${latestReport.productivityScore}%
 
 HIGHLIGHTS
 ----------
-${latestReport.highlights.map(h => \`• \${h}\`).join('\n')}
+${latestReport.highlights.map(h => "• " + h).join('\n')}
 
 AREAS TO IMPROVE
 ----------------
-${latestReport.improvements.map(i => \`• \${i}\`).join('\n')}
+${latestReport.improvements.map(i => "• " + i).join('\n')}
 
 RECOMMENDATIONS
 ---------------
-${latestReport.recommendations.map(r => \`• \${r}\`).join('\n')}
+${latestReport.recommendations.map(r => "• " + r).join('\n')}
     `.trim();
 
     const blob = new Blob([textContent], { type: 'text/plain' });

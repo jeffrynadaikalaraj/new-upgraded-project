@@ -44,6 +44,7 @@ export const useChatStore = create((set, get) => ({
   activeChat: null,
   chatHistory: [],
   isStreaming: false,
+  isThinking: false,
   isLoadingHistory: false,
   
   // Avatar States
@@ -102,7 +103,7 @@ export const useChatStore = create((set, get) => ({
     const newUserMsg = { _id: tempUserMsgId, role: 'user', content: text, timestamp: new Date() };
     const newAiMsg  = { _id: tempAiMsgId, role: 'assistant', content: '', timestamp: new Date(), isStreaming: true };
 
-    set({ messages: [...messages, newUserMsg, newAiMsg], isStreaming: true });
+    set({ messages: [...messages, newUserMsg, newAiMsg], isStreaming: true, isThinking: true });
 
     const token = localStorage.getItem('token');
     const chatIdQuery = activeChat?._id ? `&chatId=${activeChat._id}` : '';
@@ -146,6 +147,7 @@ export const useChatStore = create((set, get) => ({
               }
               return {
                 isStreaming: false,
+                isThinking: false,
                 messages: state.messages.map(m =>
                   m._id === tempAiMsgId ? { ...m, isStreaming: false } : m
                 )
@@ -166,6 +168,7 @@ export const useChatStore = create((set, get) => ({
 
             if (data.chunk) {
               set(state => ({
+                isThinking: false,
                 messages: state.messages.map(m =>
                   m._id === tempAiMsgId
                     ? { ...m, content: m.content + data.chunk }
@@ -177,6 +180,7 @@ export const useChatStore = create((set, get) => ({
             if (data.error) {
               set(state => ({
                 isStreaming: false,
+                isThinking: false,
                 messages: state.messages.map(m =>
                   m._id === tempAiMsgId
                     ? { ...m, content: 'Error: ' + data.error, isStreaming: false }
@@ -203,6 +207,7 @@ export const useChatStore = create((set, get) => ({
       console.error('Streaming fetch error:', err);
       set(state => ({
         isStreaming: false,
+        isThinking: false,
         messages: state.messages.map(m =>
           m._id === tempAiMsgId
             ? { ...m, content: 'Connection error. Is the backend running?', isStreaming: false }

@@ -20,7 +20,7 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import DocumentsPage from './pages/DocumentsPage';
 import CalendarPage from './pages/CalendarPage';
-
+import AvatarSandbox from './pages/AvatarSandbox';
 const Placeholder = ({ title }) => (
   <div className="flex h-full items-center justify-center bg-slate-900 text-white w-full">
     <h1 className="text-3xl font-bold text-slate-500">{title} Page Coming Soon</h1>
@@ -134,6 +134,12 @@ function App() {
           <Route path="/documents" element={
             <AppLayout>
               <DocumentsPage />
+            </AppLayout>
+          } />
+
+          <Route path="/sandbox" element={
+            <AppLayout>
+              <AvatarSandbox />
             </AppLayout>
           } />
         </Route>
