@@ -79,7 +79,9 @@ const AIAvatar3D = () => {
         <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
         <pointLight position={[-5, 0, 5]} intensity={1} color="#4f46e5" />
         
-        <AvatarModel />
+        <React.Suspense fallback={null}>
+          <AvatarModel />
+        </React.Suspense>
         
         <Environment preset="city" />
         <ContactShadows position={[0, -1.8, 0]} opacity={0.5} scale={10} blur={2} far={4} />
