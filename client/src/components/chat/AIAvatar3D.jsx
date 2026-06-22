@@ -34,8 +34,8 @@ const AvatarModel = () => {
   const groupRef = useRef();
   const [headMesh, setHeadMesh] = useState(null);
   
-  // Load a highly reliable realistic human face URL
-  const avatarUrl = 'https://models.readyplayer.me/63f61b0c0f865f1e8e8211da.glb';
+  // Use CloudFront CDN to bypass strict DNS blocks
+  const avatarUrl = 'https://d1a370nemizbjq.cloudfront.net/06a9d701-fa89-4b6e-827b-232d30f36f6d.glb';
   const { scene } = useGLTF(avatarUrl);
   
   useEffect(() => {
@@ -113,8 +113,5 @@ const AIAvatar3D = () => {
     </div>
   );
 };
-
-// Preload the new reliable model URL
-useGLTF.preload('https://models.readyplayer.me/63f61b0c0f865f1e8e8211da.glb');
 
 export default AIAvatar3D;
