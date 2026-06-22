@@ -270,7 +270,7 @@ ${latestReport.recommendations.map(r => "• " + r).join('\n')}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = \`Weekly_Report_\${new Date().toISOString().split('T')[0]}.txt\`;
+    a.download = `Weekly_Report_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
