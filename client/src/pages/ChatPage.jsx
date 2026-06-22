@@ -7,26 +7,7 @@ import { useChatStore } from '../stores/chatStore';
 const ChatPage = () => {
   const { messages, sendMessage, isStreaming, newChat, avatarTheme, setAvatarTheme, language, setLanguage } = useChatStore();
 
-  // Proactive Daily Briefing
-  useEffect(() => {
-    if (messages.length === 0 && !isStreaming) {
-      const hour = new Date().getHours();
-      let greeting = 'Good evening';
-      if (hour < 12) greeting = 'Good morning';
-      else if (hour < 18) greeting = 'Good afternoon';
-      
-      const welcomeMsg = `${greeting}! I'm your proactive AI LifeOS assistant. \n\nI noticed you just logged in. Would you like to log a habit, set a new goal for the day, or check your schedule?\n\n[WIDGET: LOG_HABIT]\n[WIDGET: CREATE_GOAL]\n[WIDGET: VIEW_CALENDAR]`;
-      
-      useChatStore.setState({
-        messages: [{
-          _id: `welcome_${Date.now()}`,
-          role: 'assistant',
-          content: welcomeMsg,
-          timestamp: new Date()
-        }]
-      });
-    }
-  }, [messages.length, isStreaming]);
+  // Proactive Daily Briefing removed as per user request
 
   const handleSendMessage = (text) => {
     sendMessage(text);
