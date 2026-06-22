@@ -2,9 +2,52 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ActionBadge from './ActionBadge';
+import { useNavigate } from 'react-router-dom';
+import { Target, Activity, Calendar } from 'lucide-react';
 
 const MessageBubble = ({ message }) => {
   const isUser = message.role === 'user';
+  const navigate = useNavigate();
+
+  // Extract widgets from text
+  const extractWidgets = (text) => {
+    if (!text) return { cleanText: '', widgets: [] };
+    const widgetRegex = /\[WIDGET:\s*([A-Z_]+)\]/g;
+    const widgets = [];
+    let match;
+    while ((match = widgetRegex.exec(text)) !== null) {
+      widgets.push(match[1]);
+    }
+    const cleanText = text.replace(widgetRegex, '').replace(/<!--ACTION:.*?-->/g, '').trim();
+    return { cleanText, widgets };
+  };
+
+  const { cleanText, widgets } = extractWidgets(message.content);
+
+  const renderWidget = (widgetType, idx) => {
+    switch(widgetType) {
+      case 'LOG_HABIT':
+        return (
+          <button key={idx} onClick={() => navigate('/habits')} className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-indigo-400">
+            <Activity className="w-4 h-4" /> Log a Habit Now
+          </button>
+        );
+      case 'CREATE_GOAL':
+        return (
+          <button key={idx} onClick={() => navigate('/goals')} className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white py-2 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-rose-400">
+            <Target className="w-4 h-4" /> Create a New Goal
+          </button>
+        );
+      case 'VIEW_CALENDAR':
+        return (
+          <button key={idx} onClick={() => navigate('/calendar')} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-emerald-400">
+            <Calendar className="w-4 h-4" /> Open Calendar
+          </button>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6`}>
@@ -45,10 +88,17 @@ const MessageBubble = ({ message }) => {
                   )
               }}
             >
-              {message.content?.replace(/<!--ACTION:.*?-->/g, '') || '...'}
+              {cleanText || '...'}
             </ReactMarkdown>
           )}
         </div>
+
+        {/* Render Extracted Interactive Widgets */}
+        {widgets.length > 0 && (
+          <div className="flex flex-col gap-2 mt-2">
+            {widgets.map((widget, idx) => renderWidget(widget, idx))}
+          </div>
+        )}
 
         {message.actions && message.actions.length > 0 && (
           <div className="mt-2 space-y-2">

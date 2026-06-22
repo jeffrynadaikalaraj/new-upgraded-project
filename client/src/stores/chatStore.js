@@ -18,22 +18,34 @@ const speakText = (text) => {
   if (!cleanText) return;
 
   const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'en-US';
+  const lang = useChatStore.getState().language || 'en-US';
+  utterance.lang = lang;
   utterance.rate = 1.0;
-  utterance.pitch = 1.0;
+  utterance.pitch = 0.95; // Slightly deeper, more natural
   
-  // Select voice based on theme
+  // Select voice based on theme and language
   const theme = useChatStore.getState().avatarTheme;
   const voices = window.speechSynthesis.getVoices();
   
+  // Filter voices by selected language prefix (e.g. 'en', 'es', 'fr')
+  const langPrefix = lang.split('-')[0];
+  const langVoices = voices.filter(v => v.lang.startsWith(langPrefix)) || voices;
+  
+  // Prioritize high-quality neural/natural voices built into the OS
+  const isHighQuality = (v) => v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google');
+  const hqVoices = langVoices.filter(isHighQuality);
+  const voiceList = hqVoices.length > 0 ? hqVoices : langVoices;
+  
   let preferredVoice;
   if (theme === 'male' || theme === 'jarvis') {
-    preferredVoice = voices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Mark'));
+    preferredVoice = voiceList.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Mark') || v.name.includes('Guy')) || voiceList[0];
   } else {
-    preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Female'));
+    preferredVoice = voiceList.find(v => v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Aria') || v.name.includes('Jenny')) || voiceList[0];
   }
 
-  if (preferredVoice) utterance.voice = preferredVoice;
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
+  }
 
   window.speechSynthesis.cancel(); // Stop current speaking
   window.speechSynthesis.speak(utterance);
@@ -50,9 +62,11 @@ export const useChatStore = create((set, get) => ({
   // Avatar States
   avatarTheme: 'female', // 'female', 'male', 'jarvis', 'cyber', 'minimal', 'anime'
   avatarEmotion: 'neutral', // 'neutral', 'happy', 'concerned', 'thinking', 'listening'
+  language: 'en-US',
   isUserTyping: false,
   setAvatarTheme: (theme) => set({ avatarTheme: theme }),
   setAvatarEmotion: (emotion) => set({ avatarEmotion: emotion }),
+  setLanguage: (lang) => set({ language: lang }),
   setIsUserTyping: (isTyping) => set({ isUserTyping: isTyping }),
 
   loadChatHistory: async () => {
