@@ -1,20 +1,28 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame, useGraph } from '@react-three/fiber';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, ContactShadows, useGLTF } from '@react-three/drei';
 import { useChatStore } from '../../stores/chatStore';
 import * as THREE from 'three';
-import { SkeletonUtils } from 'three-stdlib';
 
 const AvatarModel = () => {
   const { isThinking, isStreaming } = useChatStore();
   const groupRef = useRef();
+  const [headMesh, setHeadMesh] = useState(null);
   
   // Load a realistic human face (ReadyPlayerMe standard avatar)
   const { scene } = useGLTF('https://models.readyplayer.me/64fcb8332a4e21fc121b6d17.glb');
   
-  // Clone scene so we can mutate it safely
-  const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
-  const { nodes } = useGraph(clone);
+  useEffect(() => {
+    if (scene) {
+      scene.traverse((node) => {
+        if (node.isMesh && node.morphTargetDictionary) {
+          if (node.morphTargetDictionary['mouthOpen'] !== undefined) {
+            setHeadMesh(node);
+          }
+        }
+      });
+    }
+  }, [scene]);
 
   // Animation loop
   useFrame((state) => {
@@ -41,11 +49,11 @@ const AvatarModel = () => {
     }
     
     // Animate jaw/mouth if the model has a mouthOpen morph target
-    if (nodes.Wolf3D_Head && nodes.Wolf3D_Head.morphTargetDictionary) {
-      const jawIndex = nodes.Wolf3D_Head.morphTargetDictionary['mouthOpen'];
+    if (headMesh && headMesh.morphTargetDictionary) {
+      const jawIndex = headMesh.morphTargetDictionary['mouthOpen'];
       if (jawIndex !== undefined) {
-        nodes.Wolf3D_Head.morphTargetInfluences[jawIndex] = THREE.MathUtils.lerp(
-           nodes.Wolf3D_Head.morphTargetInfluences[jawIndex], 
+        headMesh.morphTargetInfluences[jawIndex] = THREE.MathUtils.lerp(
+           headMesh.morphTargetInfluences[jawIndex], 
            targetMouthOpen, 
            0.3
         );
@@ -56,7 +64,7 @@ const AvatarModel = () => {
   return (
     <group ref={groupRef} dispose={null} position={[0, -1.6, 0]} scale={2.2}>
       <Float speed={1} rotationIntensity={0.05} floatIntensity={0.05}>
-         <primitive object={clone} />
+         <primitive object={scene} />
       </Float>
     </group>
   );
