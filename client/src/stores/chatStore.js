@@ -45,8 +45,10 @@ const speakText = async (text) => {
         
         // Sync Avatar's speaking state manually (approximate based on audio duration)
         useChatStore.getState().setIsSpeakingAudio(true);
+        sfx.playSpeechAmbience(theme);
         source.onended = () => {
           useChatStore.getState().setIsSpeakingAudio(false);
+          sfx.stopSpeechAmbience();
         };
         return; // Success, skip browser TTS
       } else {
@@ -80,53 +82,53 @@ const speakText = async (text) => {
   
   // Theme-based Voice Adjustments for fluent human-like or robotic reads
   let preferredVoice;
-  utterance.rate = 1.2; // Fast and fluent by default
+  utterance.rate = 1.35; // Very fast and fluent like a human
   utterance.pitch = 1.0;
 
   switch (theme) {
     case 'anime':
-      // High pitch, very fast, look for female or young voice
-      utterance.pitch = 1.6;
-      utterance.rate = 1.3;
+      // Extremely high pitch, super fast for classic anime character feel
+      utterance.pitch = 2.0;
+      utterance.rate = 1.5;
       preferredVoice = voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name) && isHighQuality(v)) 
         || voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name)) || voiceList[0];
       break;
       
     case 'jarvis':
-      // Deep pitch, steady read, look for British or distinguished Male
-      utterance.pitch = 0.6;
-      utterance.rate = 1.1;
+      // Very deep, robotic, calculated pitch
+      utterance.pitch = 0.2;
+      utterance.rate = 1.25;
       preferredVoice = voiceList.find(v => /UK|British|George|Hazel|David/i.test(v.name) && /Male|Guy/i.test(v.name))
         || voiceList.find(v => /Male|Guy|David|Daniel|Alex/i.test(v.name)) || voiceList[0];
       break;
 
     case 'cyber':
-      // Very deep, robotic/edgy pitch
-      utterance.pitch = 0.5;
-      utterance.rate = 1.2;
+      // Deep, aggressive, robotic pitch
+      utterance.pitch = 0.1;
+      utterance.rate = 1.3;
       preferredVoice = voiceList.find(v => /Male|Guy|Matthew|Brian/i.test(v.name)) || voiceList[0];
       break;
 
     case 'minimal':
-      // Neutral, balanced, clear voice
+      // Neutral, balanced, extremely fluent
       utterance.pitch = 1.0;
-      utterance.rate = 1.15;
+      utterance.rate = 1.35;
       preferredVoice = voiceList.find(v => /Aria|Jenny|Google/i.test(v.name)) || voiceList[0];
       break;
 
     case 'male':
-      // Normal Male
+      // Normal Male, very fluent
       utterance.pitch = 0.9;
-      utterance.rate = 1.2;
+      utterance.rate = 1.35;
       preferredVoice = voiceList.find(v => /Male|Guy|David|Daniel|Alex|Matthew|Brian/i.test(v.name) && isHighQuality(v))
         || voiceList.find(v => /Male|Guy|David|Daniel|Alex|Matthew|Brian/i.test(v.name)) || voiceList[0];
       break;
 
     case 'female':
     default:
-      // Normal Female
+      // Normal Female, very fluent
       utterance.pitch = 1.1;
-      utterance.rate = 1.2;
+      utterance.rate = 1.35;
       preferredVoice = voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha|Google US English/i.test(v.name) && isHighQuality(v))
         || voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name)) || voiceList[0];
       break;
@@ -138,9 +140,15 @@ const speakText = async (text) => {
 
   window.speechSynthesis.cancel(); // Stop current speaking
   
-  // Sync avatar state
-  utterance.onstart = () => useChatStore.getState().setIsSpeakingAudio(true);
-  utterance.onend = () => useChatStore.getState().setIsSpeakingAudio(false);
+  // Sync avatar state and play ambient FX
+  utterance.onstart = () => {
+    useChatStore.getState().setIsSpeakingAudio(true);
+    sfx.playSpeechAmbience(theme);
+  };
+  utterance.onend = () => {
+    useChatStore.getState().setIsSpeakingAudio(false);
+    sfx.stopSpeechAmbience();
+  };
   
   window.speechSynthesis.speak(utterance);
 };
