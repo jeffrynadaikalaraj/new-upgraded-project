@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import { useChatStore } from '../../stores/chatStore';
 import { useAuthStore } from '../../stores/authStore';
-import AIAvatar from './AIAvatar';
 import { Calendar, Target, Activity, BarChart2, Mic } from 'lucide-react';
 
 const ChatWindow = () => {

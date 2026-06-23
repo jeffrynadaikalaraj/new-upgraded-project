@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import ChatWindow from '../components/chat/ChatWindow';
 import ChatInput from '../components/chat/ChatInput';
-import AIAvatar3D from '../components/chat/AIAvatar3D';
+import AIAvatar from '../components/chat/AIAvatar';
 import { useChatStore } from '../stores/chatStore';
 
 const ChatPage = () => {
@@ -27,7 +27,7 @@ const ChatPage = () => {
       
       {/* Left Half: 3D Avatar Area */}
       <div className="w-full md:w-1/2 h-[40vh] md:h-full relative flex flex-col border-b md:border-b-0 md:border-r border-slate-800 shadow-2xl z-10 bg-slate-900/80">
-        <AIAvatar3D />
+        <AIAvatar size="full" />
         
         {/* Header/Controls overlaid on the Avatar */}
         <div className="absolute top-0 w-full p-4 flex justify-between items-center z-10 pointer-events-none">
