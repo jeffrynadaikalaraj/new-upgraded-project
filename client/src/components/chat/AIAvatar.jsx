@@ -102,7 +102,128 @@ const AIAvatar = ({ size = 'large' }) => {
   else if (avatarEmotion && avatarEmotion !== 'neutral') activeState = avatarEmotion;
 
   const theme = THEMES[avatarTheme] || THEMES.female;
-  const isMale = avatarTheme === 'male' || avatarTheme === 'jarvis';
+  
+  const getThemeShapes = () => {
+    switch (avatarTheme) {
+      case 'male':
+        return {
+          head: "M 36 100 A 64 64 0 0 1 164 100 Q 164 145 145 175 Q 125 185 100 185 Q 75 185 55 175 Q 36 145 36 100 Z",
+          torso: ["M 5 220 Q 100 120 195 220 Z", "M 5 220 Q 100 115 195 220 Z", "M 5 220 Q 100 120 195 220 Z"],
+          hasLashes: false,
+          hasNose: true,
+          mouthStyle: 'human',
+          backHair: null,
+          frontHair: (
+            <>
+              <path d="M 5 50 Q 100 -20 195 50 L 195 90 Q 150 40 100 45 Q 50 40 5 90 Z" fill="url(#hairGrad)" />
+              <path d="M 40 45 Q 70 20 100 45" fill={theme.hair} opacity="0.6" />
+              <path d="M 95 45 Q 130 20 160 48" fill={theme.hair} opacity="0.5" />
+            </>
+          ),
+          eyeStyle: 'human',
+        };
+      case 'jarvis':
+        return {
+          head: "M 60 100 L 75 45 L 125 45 L 140 100 L 115 155 L 85 155 Z",
+          torso: ["M 30 220 L 100 140 L 170 220 Z", "M 30 220 L 100 135 L 170 220 Z", "M 30 220 L 100 140 L 170 220 Z"],
+          hasLashes: false,
+          hasNose: false,
+          mouthStyle: 'glow',
+          backHair: (
+            <motion.g animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }} style={{ transformOrigin: '100px 105px' }}>
+              <circle cx="100" cy="105" r="75" fill="none" stroke={theme.primary} strokeWidth="1" strokeDasharray="10 20 50 10" opacity="0.5" />
+              <circle cx="100" cy="105" r="85" fill="none" stroke={theme.secondary} strokeWidth="2" strokeDasharray="20 40 10 30" opacity="0.3" />
+            </motion.g>
+          ),
+          frontHair: null,
+          eyeStyle: 'visor',
+        };
+      case 'cyber':
+        return {
+          head: "M 45 90 L 155 90 L 145 140 L 100 180 L 55 140 Z",
+          torso: ["M 10 220 L 40 150 L 160 150 L 190 220 Z", "M 10 220 L 40 145 L 160 145 L 190 220 Z", "M 10 220 L 40 150 L 160 150 L 190 220 Z"],
+          hasLashes: false,
+          hasNose: true,
+          mouthStyle: 'human',
+          backHair: null,
+          frontHair: (
+            <>
+              {/* Neon face circuits */}
+              <path d="M 55 140 L 70 120 L 90 120" fill="none" stroke={theme.accent} strokeWidth="2" opacity="0.7" />
+              <path d="M 145 140 L 130 110 L 110 110" fill="none" stroke={theme.primary} strokeWidth="2" opacity="0.7" />
+              <circle cx="90" cy="120" r="2" fill={theme.accent} />
+              <circle cx="110" cy="110" r="2" fill={theme.primary} />
+              {/* Edgy Spikes */}
+              <path d="M 25 90 L 45 30 L 65 70 L 95 20 L 115 60 L 145 10 L 165 60 L 180 90 Z" fill="url(#hairGrad)" />
+              <path d="M 45 90 L 75 40 L 105 60 L 145 30 L 165 90 Z" fill={theme.hair} opacity="0.6" />
+              <path d="M 25 90 L 45 30 L 65 70 L 95 20 L 115 60 L 145 10 L 165 60 L 180 90 Z" fill="none" stroke={theme.accent} strokeWidth="1" opacity="0.5" />
+            </>
+          ),
+          eyeStyle: 'cyber',
+        };
+      case 'minimal':
+        return {
+          head: "M 45 100 A 55 55 0 0 1 155 100 A 55 55 0 0 1 45 100 Z",
+          torso: ["M 85 220 L 85 160 L 115 160 L 115 220 Z", "M 85 220 L 85 155 L 115 155 L 115 220 Z", "M 85 220 L 85 160 L 115 160 L 115 220 Z"],
+          hasLashes: false,
+          hasNose: false,
+          mouthStyle: 'dot',
+          backHair: null,
+          frontHair: (
+            <>
+              {/* Glossy glass orb shine */}
+              <ellipse cx="80" cy="70" rx="30" ry="15" fill="white" opacity="0.4" filter="blur(3px)" transform="rotate(-25 80 70)" />
+              <ellipse cx="130" cy="130" rx="20" ry="10" fill="white" opacity="0.15" filter="blur(2px)" transform="rotate(-25 130 130)" />
+            </>
+          ),
+          eyeStyle: 'dot',
+        };
+      case 'anime':
+        return {
+          head: "M 35 100 A 65 60 0 0 1 165 100 Q 165 145 130 165 L 100 195 L 70 165 Q 35 145 35 100 Z",
+          torso: ["M 35 220 Q 100 140 165 220 Z", "M 35 220 Q 100 135 165 220 Z", "M 35 220 Q 100 140 165 220 Z"],
+          hasLashes: true,
+          hasNose: true,
+          mouthStyle: 'human',
+          backHair: (
+             <path d="M 0 100 Q -10 160 10 220 L 190 220 Q 210 160 200 100 Z" fill="url(#hairGrad)" />
+          ),
+          frontHair: (
+            <>
+              {/* Flowing spiky anime bangs */}
+              <path d="M -20 50 Q 100 -60 220 50 L 210 120 Q 160 40 100 50 Q 40 40 -10 120 Z" fill="url(#hairGrad)" />
+              <path d="M 10 60 Q 60 -10 110 50" fill={theme.hair} opacity="0.6" stroke={theme.hair} strokeWidth="4" />
+              <path d="M 90 50 Q 140 -10 190 60" fill={theme.hair} opacity="0.5" stroke={theme.hair} strokeWidth="4" />
+              {/* Hair highlights */}
+              <path d="M 20 40 Q 100 10 180 40" fill="none" stroke="white" strokeWidth="6" opacity="0.15" strokeLinecap="round" filter="blur(2px)" />
+            </>
+          ),
+          eyeStyle: 'anime',
+        };
+      case 'female':
+      default:
+        return {
+          head: "M 42 100 A 58 60 0 0 1 158 100 Q 158 140 135 165 Q 115 178 100 180 Q 85 178 65 165 Q 42 140 42 100 Z",
+          torso: ["M 25 220 Q 100 135 175 220 Z", "M 25 220 Q 100 130 175 220 Z", "M 25 220 Q 100 135 175 220 Z"],
+          hasLashes: true,
+          hasNose: true,
+          mouthStyle: 'human',
+          backHair: (
+            <path d="M 25 100 Q 15 190 40 210 L 160 210 Q 185 190 175 100 Z" fill="url(#hairGrad)" />
+          ),
+          frontHair: (
+            <>
+              <path d="M -15 30 Q 100 -30 215 30 L 215 140 Q 150 20 100 25 Q 50 20 -15 140 Z" fill="url(#hairGrad)" />
+              <path d="M 25 55 Q 65 15 105 40" fill={theme.hair} opacity="0.6" stroke={theme.hair} strokeWidth="3" />
+              <path d="M 95 40 Q 135 15 175 55" fill={theme.hair} opacity="0.5" stroke={theme.hair} strokeWidth="3" />
+            </>
+          ),
+          eyeStyle: 'human',
+        };
+    }
+  };
+
+  const shapes = getThemeShapes();
 
   // ─── Mouse tracking with spring physics ──────────────────────
   const rawEyeX = useMotionValue(0);
@@ -328,7 +449,7 @@ const AIAvatar = ({ size = 'large' }) => {
                 <stop offset="100%" stopColor={theme.hair} stopOpacity="0.85" />
               </linearGradient>
               <clipPath id="headClip">
-                <ellipse cx="100" cy="105" rx="62" ry="66" />
+                <path d={shapes.head} />
               </clipPath>
               {/* Eye shine */}
               <radialGradient id="eyeShine" cx="35%" cy="30%" r="50%">
@@ -349,16 +470,14 @@ const AIAvatar = ({ size = 'large' }) => {
               fill="url(#torsoGrad)" 
               animate={
                 activeState === 'idle' 
-                  ? { d: ["M 15 220 Q 100 130 185 220 Z", "M 15 220 Q 100 125 185 220 Z", "M 15 220 Q 100 130 185 220 Z"] } 
-                  : { d: "M 15 220 Q 100 130 185 220 Z" }
+                  ? { d: shapes.torso } 
+                  : { d: shapes.torso[0] }
               }
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
 
-            {/* Back Hair for Female (Drawn BEHIND head) */}
-            {(!isMale) && (
-              <path d="M 25 100 Q 15 190 40 210 L 160 210 Q 185 190 175 100 Z" fill="url(#hairGrad)" />
-            )}
+            {/* Back Hair (Drawn BEHIND head) */}
+            {shapes.backHair}
 
             {/* Ears */}
             <ellipse cx="36" cy="110" rx="12" ry="16" fill={theme.skinShadow} />
@@ -366,26 +485,15 @@ const AIAvatar = ({ size = 'large' }) => {
             <ellipse cx="164" cy="110" rx="12" ry="16" fill={theme.skinShadow} />
             <ellipse cx="164" cy="110" rx="7" ry="10" fill={theme.skin} opacity="0.5" />
 
-            {/* Head */}
-            <ellipse cx="100" cy="105" rx="62" ry="66" fill="url(#skinGrad)" />
+            {/* Head Shape */}
+            <path 
+              d={shapes.head} 
+              fill="url(#skinGrad)" 
+            />
 
             {/* Hair */}
             <g clipPath="url(#headClip)">
-              {isMale ? (
-                <>
-                  <path d="M 5 50 Q 100 -20 195 50 L 195 90 Q 150 40 100 45 Q 50 40 5 90 Z" fill="url(#hairGrad)" />
-                  {/* Styled Male Bangs */}
-                  <path d="M 40 45 Q 70 20 100 45" fill={theme.hair} opacity="0.6" />
-                  <path d="M 95 45 Q 130 20 160 48" fill={theme.hair} opacity="0.5" />
-                </>
-              ) : (
-                <>
-                  <path d="M -15 30 Q 100 -30 215 30 L 215 140 Q 150 20 100 25 Q 50 20 -15 140 Z" fill="url(#hairGrad)" />
-                  {/* Female Bangs */}
-                  <path d="M 25 55 Q 65 15 105 40" fill={theme.hair} opacity="0.6" stroke={theme.hair} strokeWidth="3" />
-                  <path d="M 95 40 Q 135 15 175 55" fill={theme.hair} opacity="0.5" stroke={theme.hair} strokeWidth="3" />
-                </>
-              )}
+              {shapes.frontHair}
             </g>
 
             {/* Cheeks */}
@@ -407,117 +515,190 @@ const AIAvatar = ({ size = 'large' }) => {
               transform={`translate(${ex}, ${ey})`}
               style={{ transition: 'transform 0.1s ease-out' }}
             >
-              {/* Left Eye */}
-              <g transform={`translate(73, 95) scale(1, ${finalBlinkScale * fp.eyeSquint})`}>
-                {/* Eye white */}
-                <ellipse cx="0" cy="0" rx="11" ry="10" fill="white" />
-                {/* Iris */}
-                <ellipse cx="0" cy="1" rx="7" ry="7" fill="#2c1810" />
-                {/* Pupil */}
-                <motion.ellipse
-                  cx="0" cy="1" rx="4" ry="4" fill="#0a0a0a"
-                  animate={activeState === 'excited' ? { ry: [4, 5, 4] } : {}}
-                  transition={{ duration: 0.5, repeat: Infinity }}
-                />
-                {/* Shine */}
-                <circle cx="-2" cy="-2" r="2.5" fill="white" opacity="0.9" />
-                <circle cx="2" cy="2" r="1.2" fill="white" opacity="0.5" />
-                {/* Upper eyelid line */}
-                <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={isMale ? "2.5" : "2"} fill="none" strokeLinecap="round" />
-                {!isMale && (
-                  <>
-                    <path d="M -10 -2 Q -15 -8 -18 -6" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                    <path d="M -6 -9 Q -10 -15 -14 -14" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
-                    <path d="M -2 -11 Q -4 -16 -6 -16" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                  </>
-                )}
-              </g>
-
-              {/* Right Eye */}
-              <g transform={`translate(127, 95) scale(1, ${finalBlinkScale * fp.eyeSquint})`}>
-                <ellipse cx="0" cy="0" rx="11" ry="10" fill="white" />
-                <ellipse cx="0" cy="1" rx="7" ry="7" fill="#2c1810" />
-                <motion.ellipse
-                  cx="0" cy="1" rx="4" ry="4" fill="#0a0a0a"
-                  animate={activeState === 'excited' ? { ry: [4, 5, 4] } : {}}
-                  transition={{ duration: 0.5, repeat: Infinity }}
-                />
-                <circle cx="-2" cy="-2" r="2.5" fill="white" opacity="0.9" />
-                <circle cx="2" cy="2" r="1.2" fill="white" opacity="0.5" />
-                <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={isMale ? "2.5" : "2"} fill="none" strokeLinecap="round" />
-                {!isMale && (
-                  <>
-                    <path d="M 10 -2 Q 15 -8 18 -6" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                    <path d="M 6 -9 Q 10 -15 14 -14" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
-                    <path d="M 2 -11 Q 4 -16 6 -16" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                  </>
-                )}
-              </g>
+              {['left', 'right'].map((side) => {
+                const isLeft = side === 'left';
+                const tx = isLeft ? 73 : 127;
+                return (
+                  <g key={side} transform={`translate(${tx}, 95) scale(1, ${finalBlinkScale * fp.eyeSquint})`}>
+                    {shapes.eyeStyle === 'human' && (
+                      <>
+                        {/* Eye white */}
+                        <ellipse cx="0" cy="0" rx="11" ry="10" fill="white" />
+                        {/* Iris */}
+                        <ellipse cx="0" cy="1" rx="7" ry="7" fill="#2c1810" />
+                        {/* Pupil */}
+                        <motion.ellipse cx="0" cy="1" rx="4" ry="4" fill="#0a0a0a" animate={activeState === 'excited' ? { ry: [4, 5, 4] } : {}} transition={{ duration: 0.5, repeat: Infinity }} />
+                        {/* Shine */}
+                        <circle cx="-2" cy="-2" r="2.5" fill="white" opacity="0.9" />
+                        <circle cx="2" cy="2" r="1.2" fill="white" opacity="0.5" />
+                        {/* Upper eyelid line */}
+                        <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={shapes.hasLashes ? "2" : "2.5"} fill="none" strokeLinecap="round" />
+                        {shapes.hasLashes && (
+                          isLeft ? (
+                            <>
+                              <path d="M -10 -2 Q -15 -8 -18 -6" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                              <path d="M -6 -9 Q -10 -15 -14 -14" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
+                              <path d="M -2 -11 Q -4 -16 -6 -16" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                            </>
+                          ) : (
+                            <>
+                              <path d="M 10 -2 Q 15 -8 18 -6" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                              <path d="M 6 -9 Q 10 -15 14 -14" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
+                              <path d="M 2 -11 Q 4 -16 6 -16" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                            </>
+                          )
+                        )}
+                      </>
+                    )}
+                    {shapes.eyeStyle === 'anime' && (
+                      <>
+                        <ellipse cx="0" cy="0" rx="14" ry="17" fill="white" />
+                        <ellipse cx="0" cy="1" rx="11" ry="14" fill={theme.accent} />
+                        {/* Gradient anime pupil */}
+                        <motion.ellipse cx="0" cy="2" rx="7" ry="9" fill="#0a0a0a" animate={activeState === 'excited' ? { ry: [9, 11, 9] } : {}} transition={{ duration: 0.5, repeat: Infinity }} />
+                        <ellipse cx="0" cy="8" rx="5" ry="3" fill={theme.primary} opacity="0.8" filter="blur(1px)" />
+                        {/* Huge Shines */}
+                        <circle cx="-5" cy="-6" r="5" fill="white" opacity="0.95" />
+                        <circle cx="6" cy="6" r="2.5" fill="white" opacity="0.8" />
+                        {/* Thick Eyeliner */}
+                        <path d="M -15 -4 Q 0 -22 15 -4" stroke={theme.hair} strokeWidth="4" fill="none" strokeLinecap="round" />
+                        <path d="M -15 -4 L -18 -2" stroke={theme.hair} strokeWidth="3" fill="none" strokeLinecap="round" />
+                        <path d="M 15 -4 L 18 -2" stroke={theme.hair} strokeWidth="3" fill="none" strokeLinecap="round" />
+                        {/* Lashes */}
+                        {isLeft ? (
+                          <>
+                            <path d="M -13 -4 Q -20 -10 -24 -6" stroke={theme.hair} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+                            <path d="M -9 -11 Q -15 -18 -18 -16" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                          </>
+                        ) : (
+                          <>
+                            <path d="M 13 -4 Q 20 -10 24 -6" stroke={theme.hair} strokeWidth="3.5" fill="none" strokeLinecap="round" />
+                            <path d="M 9 -11 Q 15 -18 18 -16" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                          </>
+                        )}
+                      </>
+                    )}
+                    {shapes.eyeStyle === 'visor' && (
+                      <>
+                         {/* Visor glowing frame */}
+                         <rect x="-18" y="-6" width="36" height="12" rx="3" fill="none" stroke={theme.primary} strokeWidth="2" opacity="0.9" />
+                         <rect x="-15" y="-4" width="30" height="8" rx="2" fill={theme.accent} opacity="0.8" filter="blur(2px)" />
+                         <rect x="-15" y="-4" width="30" height="8" rx="2" fill={theme.accent} opacity="0.9" />
+                         {/* Cylon/Knight Rider moving eye element */}
+                         <motion.rect 
+                           x="-10" y="-2" width="12" height="4" rx="1" fill="white" 
+                           animate={{ x: [-8, 8, -8], opacity: activeState === 'speaking' ? [0.6, 1, 0.6] : 0.9 }} 
+                           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} 
+                         />
+                      </>
+                    )}
+                    {shapes.eyeStyle === 'cyber' && (
+                      isLeft ? (
+                        <>
+                          <ellipse cx="0" cy="0" rx="11" ry="10" fill="#111" />
+                          <ellipse cx="0" cy="0" rx="4" ry="4" fill={theme.accent} />
+                          <circle cx="0" cy="0" r="1.5" fill="white" />
+                          <path d="M -15 -10 L 15 -10 L 10 10 L -10 10 Z" stroke={theme.accent} strokeWidth="1" fill="none" />
+                        </>
+                      ) : (
+                        <>
+                          <ellipse cx="0" cy="0" rx="11" ry="10" fill="white" />
+                          <ellipse cx="0" cy="1" rx="7" ry="7" fill={theme.secondary} />
+                          <motion.ellipse cx="0" cy="1" rx="4" ry="4" fill="#0a0a0a" animate={activeState === 'excited' ? { ry: [4, 5, 4] } : {}} transition={{ duration: 0.5, repeat: Infinity }} />
+                          <circle cx="-2" cy="-2" r="2.5" fill="white" opacity="0.9" />
+                          <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
+                        </>
+                      )
+                    )}
+                    {shapes.eyeStyle === 'dot' && (
+                      <circle cx="0" cy="0" r="6" fill={theme.hair} />
+                    )}
+                  </g>
+                );
+              })}
 
               {/* Eyebrows */}
-              <motion.path
-                d={`M 58 ${80 - fp.browL} Q 73 ${72 - fp.browL} 88 ${80 - fp.browL}`}
-                stroke={theme.hair}
-                strokeWidth={isMale ? "4.5" : "3"}
-                fill="none"
-                strokeLinecap="round"
-                animate={{ d: `M 58 ${80 - fp.browL} Q 73 ${72 - fp.browL} 88 ${80 - fp.browL}` }}
-                transition={{ duration: 0.3 }}
-              />
-              <motion.path
-                d={`M 112 ${80 - fp.browR} Q 127 ${72 - fp.browR} 142 ${80 - fp.browR}`}
-                stroke={theme.hair}
-                strokeWidth={isMale ? "4.5" : "3"}
-                fill="none"
-                strokeLinecap="round"
-                animate={{ d: `M 112 ${80 - fp.browR} Q 127 ${72 - fp.browR} 142 ${80 - fp.browR}` }}
-                transition={{ duration: 0.3 }}
-              />
+              {shapes.eyeStyle !== 'visor' && shapes.eyeStyle !== 'dot' && (
+                <>
+                  <motion.path
+                    d={`M 58 ${80 - fp.browL} Q 73 ${72 - fp.browL} 88 ${80 - fp.browL}`}
+                    stroke={theme.hair}
+                    strokeWidth={shapes.hasLashes ? "3" : "4.5"}
+                    fill="none"
+                    strokeLinecap="round"
+                    animate={{ d: `M 58 ${80 - fp.browL} Q 73 ${72 - fp.browL} 88 ${80 - fp.browL}` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <motion.path
+                    d={`M 112 ${80 - fp.browR} Q 127 ${72 - fp.browR} 142 ${80 - fp.browR}`}
+                    stroke={theme.hair}
+                    strokeWidth={shapes.hasLashes ? "3" : "4.5"}
+                    fill="none"
+                    strokeLinecap="round"
+                    animate={{ d: `M 112 ${80 - fp.browR} Q 127 ${72 - fp.browR} 142 ${80 - fp.browR}` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </>
+              )}
             </g>
 
             {/* Nose */}
-            <path d="M 97 112 Q 100 118 103 112" stroke={theme.skinShadow} strokeWidth="2" fill="none" strokeLinecap="round" />
+            {shapes.hasNose && (
+              <path d="M 97 112 Q 100 118 103 112" stroke={theme.skinShadow} strokeWidth="2" fill="none" strokeLinecap="round" />
+            )}
 
             {/* ─── Mouth ──────────────────────────────────────── */}
             <motion.g
               animate={{ x: fp.mouthX, y: fp.mouthY }}
               transition={{ duration: 0.2 }}
             >
-              {/* Mouth shape — ellipse for open, line for closed */}
-              {fp.mouthH > 3 ? (
-                <>
-                  <motion.ellipse
-                    cx="100"
-                    cy="135"
-                    fill={theme.lip}
-                    animate={{ rx: fp.mouthW, ry: fp.mouthH }}
-                    transition={{ duration: activeState === 'speaking' ? 0.08 : 0.3 }}
-                  />
-                  {/* Teeth hint when mouth is very open */}
-                  {fp.mouthH > 6 && (
-                    <motion.rect
-                      x={100 - fp.mouthW * 0.6}
-                      y="130"
-                      rx="2"
-                      fill="white"
-                      opacity="0.85"
-                      animate={{ width: fp.mouthW * 1.2, height: Math.min(fp.mouthH * 0.4, 5) }}
-                      transition={{ duration: 0.15 }}
+              {/* Mouth shape based on style */}
+              {shapes.mouthStyle === 'human' && (
+                fp.mouthH > 3 ? (
+                  <>
+                    <motion.ellipse
+                      cx="100"
+                      cy="135"
+                      fill={theme.lip}
+                      animate={{ rx: fp.mouthW, ry: fp.mouthH }}
+                      transition={{ duration: activeState === 'speaking' ? 0.08 : 0.3 }}
                     />
-                  )}
-                </>
-              ) : (
-                <motion.path
-                  d={`M ${100 - fp.mouthW} 135 Q 100 ${135 + fp.mouthH + 2} ${100 + fp.mouthW} 135`}
-                  stroke={theme.lip}
-                  strokeWidth="2.5"
-                  fill="none"
-                  strokeLinecap="round"
-                  animate={{
-                    d: `M ${100 - fp.mouthW} 135 Q 100 ${135 + fp.mouthH + 2} ${100 + fp.mouthW} 135`,
-                  }}
-                  transition={{ duration: 0.3 }}
+                    {/* Teeth hint when mouth is very open */}
+                    {fp.mouthH > 6 && (
+                      <motion.rect
+                        x={100 - fp.mouthW * 0.6}
+                        y="130"
+                        rx="2"
+                        fill="white"
+                        opacity="0.85"
+                        animate={{ width: fp.mouthW * 1.2, height: Math.min(fp.mouthH * 0.4, 5) }}
+                        transition={{ duration: 0.15 }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <motion.path
+                    d={`M ${100 - fp.mouthW} 135 Q 100 ${135 + fp.mouthH + 2} ${100 + fp.mouthW} 135`}
+                    stroke={theme.lip}
+                    strokeWidth="2.5"
+                    fill="none"
+                    strokeLinecap="round"
+                    animate={{
+                      d: `M ${100 - fp.mouthW} 135 Q 100 ${135 + fp.mouthH + 2} ${100 + fp.mouthW} 135`,
+                    }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )
+              )}
+              {shapes.mouthStyle === 'glow' && (
+                <motion.rect
+                   x={100 - fp.mouthW} y="133" rx="2" fill={theme.accent}
+                   animate={{ width: fp.mouthW * 2, height: Math.max(2, fp.mouthH), opacity: activeState === 'speaking' ? [0.6, 1, 0.6] : 0.8 }}
+                   transition={{ duration: activeState === 'speaking' ? 0.1 : 0.3, repeat: activeState === 'speaking' ? Infinity : 0 }}
                 />
+              )}
+              {shapes.mouthStyle === 'dot' && (
+                <circle cx="100" cy="135" r={Math.max(2, fp.mouthH)} fill={theme.hair} />
               )}
             </motion.g>
 
