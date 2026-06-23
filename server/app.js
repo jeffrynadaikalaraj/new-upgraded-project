@@ -45,6 +45,7 @@ app.use('/api/users', apiLimiter, require('./routes/users'));
 app.use('/api/documents', apiLimiter, require('./routes/documents'));
 app.use('/api/study', apiLimiter, require('./routes/studyRoutes'));
 app.use('/api/calendar', apiLimiter, require('./routes/calendar'));
+app.use('/api/tts', apiLimiter, require('./routes/tts'));
 
 // Basic health route
 app.get('/api/health', (req, res) => {

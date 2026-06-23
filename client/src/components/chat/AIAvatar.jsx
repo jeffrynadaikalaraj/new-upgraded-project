@@ -92,16 +92,17 @@ const StatusLabel = ({ state, color }) => {
 
 // ─── Main Motion Face ──────────────────────────────────────────
 const AIAvatar = ({ size = 'large' }) => {
-  const { isStreaming, isThinking, isUserTyping, avatarTheme, avatarEmotion } = useChatStore();
+  const { isStreaming, isThinking, isUserTyping, avatarTheme, avatarEmotion, isSpeakingAudio } = useChatStore();
 
   // Resolve active state
   let activeState = 'idle';
   if (isThinking) activeState = 'thinking';
-  else if (isStreaming) activeState = 'speaking';
+  else if (isSpeakingAudio || isStreaming) activeState = 'speaking';
   else if (isUserTyping) activeState = 'listening';
   else if (avatarEmotion && avatarEmotion !== 'neutral') activeState = avatarEmotion;
 
   const theme = THEMES[avatarTheme] || THEMES.female;
+  const isMale = avatarTheme === 'male' || avatarTheme === 'jarvis';
 
   // ─── Mouse tracking with spring physics ──────────────────────
   const rawEyeX = useMotionValue(0);
@@ -331,10 +332,25 @@ const AIAvatar = ({ size = 'large' }) => {
                 <stop offset="0%" stopColor="white" stopOpacity="0.9" />
                 <stop offset="100%" stopColor="white" stopOpacity="0" />
               </radialGradient>
+              <linearGradient id="torsoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={theme.primary} stopOpacity="0.8" />
+                <stop offset="100%" stopColor={theme.secondary} stopOpacity="0" />
+              </linearGradient>
             </defs>
 
             {/* Drop Shadow Under Head */}
             <ellipse cx="100" cy="185" rx="45" ry="8" fill="rgba(0,0,0,0.08)" />
+
+            {/* Torso / Shoulders with Breathing Animation */}
+            <motion.path 
+              fill="url(#torsoGrad)" 
+              animate={
+                activeState === 'idle' 
+                  ? { d: ["M 10 210 Q 100 120 190 210 Z", "M 10 210 Q 100 115 190 210 Z", "M 10 210 Q 100 120 190 210 Z"] } 
+                  : { d: "M 10 210 Q 100 120 190 210 Z" }
+              }
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            />
 
             {/* Ears */}
             <ellipse cx="36" cy="110" rx="12" ry="16" fill={theme.skinShadow} />
@@ -345,12 +361,28 @@ const AIAvatar = ({ size = 'large' }) => {
             {/* Head */}
             <ellipse cx="100" cy="105" rx="62" ry="66" fill="url(#skinGrad)" />
 
+            {/* Back Hair for Female */}
+            {(!isMale) && (
+              <path d="M 30 100 Q 15 170 30 200 L 170 200 Q 185 170 170 100 Z" fill="url(#hairGrad)" />
+            )}
+
             {/* Hair */}
             <g clipPath="url(#headClip)">
-              <path d="M 10 40 Q 50 -10 100 5 Q 150 -10 190 40 L 190 80 Q 160 50 100 55 Q 40 50 10 80 Z" fill="url(#hairGrad)" />
-              {/* Bangs */}
-              <path d="M 55 55 Q 65 30 85 48" fill={theme.hair} opacity="0.6" />
-              <path d="M 110 45 Q 125 25 145 55" fill={theme.hair} opacity="0.5" />
+              {isMale ? (
+                <>
+                  <path d="M 5 50 Q 100 -20 195 50 L 195 90 Q 150 40 100 45 Q 50 40 5 90 Z" fill="url(#hairGrad)" />
+                  {/* Styled Male Bangs */}
+                  <path d="M 40 45 Q 70 20 100 45" fill={theme.hair} opacity="0.6" />
+                  <path d="M 95 45 Q 130 20 160 48" fill={theme.hair} opacity="0.5" />
+                </>
+              ) : (
+                <>
+                  <path d="M -10 40 Q 100 -20 210 40 L 210 120 Q 150 30 100 35 Q 50 30 -10 120 Z" fill="url(#hairGrad)" />
+                  {/* Female Bangs */}
+                  <path d="M 30 55 Q 65 20 105 45" fill={theme.hair} opacity="0.6" />
+                  <path d="M 95 45 Q 135 20 170 55" fill={theme.hair} opacity="0.5" />
+                </>
+              )}
             </g>
 
             {/* Cheeks */}
@@ -388,7 +420,13 @@ const AIAvatar = ({ size = 'large' }) => {
                 <circle cx="-2" cy="-2" r="2.5" fill="white" opacity="0.9" />
                 <circle cx="2" cy="2" r="1.2" fill="white" opacity="0.5" />
                 {/* Upper eyelid line */}
-                <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={isMale ? "2.5" : "2"} fill="none" strokeLinecap="round" />
+                {!isMale && (
+                  <>
+                    <path d="M -11 -2 Q -14 -6 -16 -5" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                    <path d="M -8 -8 Q -10 -12 -12 -12" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                  </>
+                )}
               </g>
 
               {/* Right Eye */}
@@ -402,14 +440,20 @@ const AIAvatar = ({ size = 'large' }) => {
                 />
                 <circle cx="-2" cy="-2" r="2.5" fill="white" opacity="0.9" />
                 <circle cx="2" cy="2" r="1.2" fill="white" opacity="0.5" />
-                <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={isMale ? "2.5" : "2"} fill="none" strokeLinecap="round" />
+                {!isMale && (
+                  <>
+                    <path d="M 11 -2 Q 14 -6 16 -5" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                    <path d="M 8 -8 Q 10 -12 12 -12" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                  </>
+                )}
               </g>
 
               {/* Eyebrows */}
               <motion.path
                 d={`M 58 ${80 - fp.browL} Q 73 ${72 - fp.browL} 88 ${80 - fp.browL}`}
                 stroke={theme.hair}
-                strokeWidth="3"
+                strokeWidth={isMale ? "4.5" : "3"}
                 fill="none"
                 strokeLinecap="round"
                 animate={{ d: `M 58 ${80 - fp.browL} Q 73 ${72 - fp.browL} 88 ${80 - fp.browL}` }}
@@ -418,7 +462,7 @@ const AIAvatar = ({ size = 'large' }) => {
               <motion.path
                 d={`M 112 ${80 - fp.browR} Q 127 ${72 - fp.browR} 142 ${80 - fp.browR}`}
                 stroke={theme.hair}
-                strokeWidth="3"
+                strokeWidth={isMale ? "4.5" : "3"}
                 fill="none"
                 strokeLinecap="round"
                 animate={{ d: `M 112 ${80 - fp.browR} Q 127 ${72 - fp.browR} 142 ${80 - fp.browR}` }}

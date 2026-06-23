@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import { sfx } from '../utils/sfx';
 
 const BASE_URL = ''; // Use Vite proxy to avoid CORS issues
 
 // Optional TTS feature toggle - can be linked to a UI setting later
 let isVoiceModeEnabled = true;
 
-const speakText = (text) => {
-  if (!isVoiceModeEnabled || !('speechSynthesis' in window)) return;
+const speakText = async (text) => {
+  if (!isVoiceModeEnabled) return;
   
   // Clean text of markdown and action tags
   const cleanText = text
@@ -17,6 +18,51 @@ const speakText = (text) => {
     
   if (!cleanText) return;
 
+  const theme = useChatStore.getState().avatarTheme;
+  
+  try {
+    // Try backend ElevenLabs endpoint
+    const response = await fetch(`${BASE_URL}/api/tts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({ text: cleanText, theme })
+    });
+
+    if (response.ok) {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('audio')) {
+        // Play backend audio
+        const arrayBuffer = await response.arrayBuffer();
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+        
+        // Sync Avatar's speaking state manually (approximate based on audio duration)
+        useChatStore.getState().setIsSpeakingAudio(true);
+        source.onended = () => {
+          useChatStore.getState().setIsSpeakingAudio(false);
+        };
+        return; // Success, skip browser TTS
+      } else {
+        const data = await response.json();
+        if (data.useBrowserTTS) {
+          console.log('Falling back to browser TTS (no ElevenLabs key)');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('TTS Backend failed, falling back to browser TTS:', error);
+  }
+
+  // Fallback: Browser Web Speech API
+  if (!('speechSynthesis' in window)) return;
+  
   const utterance = new SpeechSynthesisUtterance(cleanText);
   const lang = useChatStore.getState().language || 'en-US';
   utterance.lang = lang;
@@ -24,23 +70,25 @@ const speakText = (text) => {
   utterance.pitch = 0.95; // Slightly deeper, more natural
   
   // Select voice based on theme and language
-  const theme = useChatStore.getState().avatarTheme;
   const voices = window.speechSynthesis.getVoices();
-  
-  // Filter voices by selected language prefix (e.g. 'en', 'es', 'fr')
   const langPrefix = lang.split('-')[0];
   const langVoices = voices.filter(v => v.lang.startsWith(langPrefix)) || voices;
   
   // Prioritize high-quality neural/natural voices built into the OS
-  const isHighQuality = (v) => v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google');
+  const isHighQuality = (v) => v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Online');
   const hqVoices = langVoices.filter(isHighQuality);
   const voiceList = hqVoices.length > 0 ? hqVoices : langVoices;
   
   let preferredVoice;
   if (theme === 'male' || theme === 'jarvis') {
-    preferredVoice = voiceList.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Mark') || v.name.includes('Guy')) || voiceList[0];
+    preferredVoice = voiceList.find(v => 
+      /Male|Guy|David|Daniel|Alex|Matthew|Brian/i.test(v.name) && isHighQuality(v)
+    ) || voiceList.find(v => /Male|Guy|David|Daniel|Alex|Matthew|Brian/i.test(v.name)) || voiceList[0];
   } else {
-    preferredVoice = voiceList.find(v => v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Aria') || v.name.includes('Jenny')) || voiceList[0];
+    // Default to female for other themes
+    preferredVoice = voiceList.find(v => 
+      /Female|Aria|Jenny|Zira|Samantha|Google US English/i.test(v.name) && isHighQuality(v)
+    ) || voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name)) || voiceList[0];
   }
 
   if (preferredVoice) {
@@ -48,6 +96,11 @@ const speakText = (text) => {
   }
 
   window.speechSynthesis.cancel(); // Stop current speaking
+  
+  // Sync avatar state
+  utterance.onstart = () => useChatStore.getState().setIsSpeakingAudio(true);
+  utterance.onend = () => useChatStore.getState().setIsSpeakingAudio(false);
+  
   window.speechSynthesis.speak(utterance);
 };
 
@@ -57,6 +110,7 @@ export const useChatStore = create((set, get) => ({
   chatHistory: [],
   isStreaming: false,
   isThinking: false,
+  isSpeakingAudio: false,
   isLoadingHistory: false,
   
   // Avatar States
@@ -68,6 +122,7 @@ export const useChatStore = create((set, get) => ({
   setAvatarEmotion: (emotion) => set({ avatarEmotion: emotion }),
   setLanguage: (lang) => set({ language: lang }),
   setIsUserTyping: (isTyping) => set({ isUserTyping: isTyping }),
+  setIsSpeakingAudio: (isSpeaking) => set({ isSpeakingAudio: isSpeaking }),
 
   loadChatHistory: async () => {
     set({ isLoadingHistory: true });
@@ -110,6 +165,9 @@ export const useChatStore = create((set, get) => ({
   sendMessage: async (text) => {
     const { activeChat, messages } = get();
     
+    // Play SFX
+    sfx.playSendMsg();
+
     // Optimistic UI update — add user message immediately
     const tempUserMsgId = `user_${Date.now()}`;
     const tempAiMsgId = `ai_${Date.now()}`;
@@ -181,14 +239,20 @@ export const useChatStore = create((set, get) => ({
             }
 
             if (data.chunk) {
-              set(state => ({
-                isThinking: false,
-                messages: state.messages.map(m =>
-                  m._id === tempAiMsgId
-                    ? { ...m, content: m.content + data.chunk }
-                    : m
-                )
-              }));
+              set(state => {
+                // If this is the first chunk, play receive sound
+                if (state.isThinking) {
+                   sfx.playReceiveMsg();
+                }
+                return {
+                  isThinking: false,
+                  messages: state.messages.map(m =>
+                    m._id === tempAiMsgId
+                      ? { ...m, content: m.content + data.chunk }
+                      : m
+                  )
+                };
+              });
             }
 
             if (data.error) {

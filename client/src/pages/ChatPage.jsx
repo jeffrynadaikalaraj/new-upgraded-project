@@ -3,6 +3,7 @@ import ChatWindow from '../components/chat/ChatWindow';
 import ChatInput from '../components/chat/ChatInput';
 import AIAvatar from '../components/chat/AIAvatar';
 import { useChatStore } from '../stores/chatStore';
+import { motion } from 'framer-motion';
 
 const ChatPage = () => {
   const { messages, sendMessage, isStreaming, newChat, avatarTheme, setAvatarTheme, language, setLanguage } = useChatStore();
@@ -23,10 +24,22 @@ const ChatPage = () => {
   ];
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-900/50 relative overflow-hidden">
+    <div className="flex-1 flex flex-col md:flex-row h-full bg-slate-900 relative overflow-hidden">
       
+      {/* Animated Background Blobs for Glassmorphism */}
+      <motion.div 
+        className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px] pointer-events-none"
+        animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
+        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div 
+        className="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-rose-600/10 rounded-full blur-[120px] pointer-events-none"
+        animate={{ x: [0, -60, 0], y: [0, -40, 0] }}
+        transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
       {/* Left Half: 3D Avatar Area */}
-      <div className="w-full md:w-1/2 h-[40vh] md:h-full relative flex flex-col border-b md:border-b-0 md:border-r border-slate-800 shadow-2xl z-10 bg-slate-900/80">
+      <div className="w-full md:w-1/2 h-[40vh] md:h-full relative flex flex-col border-b md:border-b-0 md:border-r border-slate-700/50 shadow-2xl z-10 bg-slate-900/60 backdrop-blur-3xl">
         <AIAvatar size="full" />
         
         {/* Header/Controls overlaid on the Avatar */}
@@ -65,9 +78,9 @@ const ChatPage = () => {
       </div>
 
       {/* Right Half: Chat Area */}
-      <div className="w-full md:w-1/2 h-[60vh] md:h-full flex flex-col relative bg-slate-900/40">
+      <div className="w-full md:w-1/2 h-[60vh] md:h-full flex flex-col relative bg-slate-900/30 backdrop-blur-xl z-10 border-l border-white/5">
         <ChatWindow />
-        <div className="w-full bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent pt-4 pb-4 px-4 sticky bottom-0 z-10">
+        <div className="w-full bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent pt-4 pb-4 px-4 sticky bottom-0 z-20">
           <ChatInput onSendMessage={handleSendMessage} disabled={isStreaming} />
           <div className="text-center mt-2">
             <p className="text-[10px] text-slate-500">AI LifeOS may generate inaccurate information. Verify critical details.</p>

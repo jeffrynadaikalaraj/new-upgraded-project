@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import ActionBadge from './ActionBadge';
 import { useNavigate } from 'react-router-dom';
 import { Target, Activity, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const MessageBubble = ({ message }) => {
   const isUser = message.role === 'user';
@@ -50,12 +51,17 @@ const MessageBubble = ({ message }) => {
   };
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6`}>
+    <motion.div 
+      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6`}
+    >
       <div 
-        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-4 ${
+        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-4 shadow-xl backdrop-blur-md ${
           isUser 
-            ? 'bg-indigo-600 text-white rounded-br-sm' 
-            : 'bg-slate-800 text-slate-100 border border-slate-700 rounded-bl-sm shadow-md'
+            ? 'bg-indigo-600/90 text-white rounded-br-sm border border-indigo-500/50' 
+            : 'bg-slate-800/80 text-slate-100 border border-slate-700/80 rounded-bl-sm'
         }`}
       >
         {!isUser && (
@@ -112,7 +118,7 @@ const MessageBubble = ({ message }) => {
           <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-400 animate-pulse align-middle"></span>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
