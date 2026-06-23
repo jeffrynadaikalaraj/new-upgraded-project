@@ -262,8 +262,9 @@ const AIAvatar = ({ size = 'large' }) => {
       <motion.div
         className="absolute z-0 rounded-full"
         style={{
-          width: isFullPanel ? '55%' : '85%',
-          height: isFullPanel ? '55%' : '85%',
+          width: isFullPanel ? '320px' : '85%',
+          aspectRatio: '1/1',
+          maxWidth: '85vw',
           border: `2px solid ${auraColor}`,
           filter: `blur(1px)`,
         }}
@@ -276,8 +277,9 @@ const AIAvatar = ({ size = 'large' }) => {
       <motion.div
         className="absolute z-0 rounded-full"
         style={{
-          width: isFullPanel ? '62%' : '95%',
-          height: isFullPanel ? '62%' : '95%',
+          width: isFullPanel ? '360px' : '95%',
+          aspectRatio: '1/1',
+          maxWidth: '95vw',
           border: `1px solid ${auraColor}`,
           filter: `blur(3px)`,
         }}
@@ -304,8 +306,9 @@ const AIAvatar = ({ size = 'large' }) => {
               ? { scale: [1, 1.015, 1], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }
               : { scale: 1 }
           }
+          className="w-full h-full"
         >
-          <svg viewBox="0 0 200 200" className="w-full h-full overflow-visible" style={{ filter: 'drop-shadow(0 8px 30px rgba(0,0,0,0.3))' }}>
+          <svg viewBox="0 0 200 220" className="w-full h-full overflow-visible" style={{ filter: 'drop-shadow(0 8px 30px rgba(0,0,0,0.3))' }}>
             <defs>
               {/* Gradient definitions */}
               <radialGradient id="skinGrad" cx="50%" cy="40%" r="55%">
@@ -346,11 +349,16 @@ const AIAvatar = ({ size = 'large' }) => {
               fill="url(#torsoGrad)" 
               animate={
                 activeState === 'idle' 
-                  ? { d: ["M 10 210 Q 100 120 190 210 Z", "M 10 210 Q 100 115 190 210 Z", "M 10 210 Q 100 120 190 210 Z"] } 
-                  : { d: "M 10 210 Q 100 120 190 210 Z" }
+                  ? { d: ["M 15 220 Q 100 130 185 220 Z", "M 15 220 Q 100 125 185 220 Z", "M 15 220 Q 100 130 185 220 Z"] } 
+                  : { d: "M 15 220 Q 100 130 185 220 Z" }
               }
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
+
+            {/* Back Hair for Female (Drawn BEHIND head) */}
+            {(!isMale) && (
+              <path d="M 25 100 Q 15 190 40 210 L 160 210 Q 185 190 175 100 Z" fill="url(#hairGrad)" />
+            )}
 
             {/* Ears */}
             <ellipse cx="36" cy="110" rx="12" ry="16" fill={theme.skinShadow} />
@@ -360,11 +368,6 @@ const AIAvatar = ({ size = 'large' }) => {
 
             {/* Head */}
             <ellipse cx="100" cy="105" rx="62" ry="66" fill="url(#skinGrad)" />
-
-            {/* Back Hair for Female */}
-            {(!isMale) && (
-              <path d="M 30 100 Q 15 170 30 200 L 170 200 Q 185 170 170 100 Z" fill="url(#hairGrad)" />
-            )}
 
             {/* Hair */}
             <g clipPath="url(#headClip)">
@@ -377,10 +380,10 @@ const AIAvatar = ({ size = 'large' }) => {
                 </>
               ) : (
                 <>
-                  <path d="M -10 40 Q 100 -20 210 40 L 210 120 Q 150 30 100 35 Q 50 30 -10 120 Z" fill="url(#hairGrad)" />
+                  <path d="M -15 30 Q 100 -30 215 30 L 215 140 Q 150 20 100 25 Q 50 20 -15 140 Z" fill="url(#hairGrad)" />
                   {/* Female Bangs */}
-                  <path d="M 30 55 Q 65 20 105 45" fill={theme.hair} opacity="0.6" />
-                  <path d="M 95 45 Q 135 20 170 55" fill={theme.hair} opacity="0.5" />
+                  <path d="M 25 55 Q 65 15 105 40" fill={theme.hair} opacity="0.6" stroke={theme.hair} strokeWidth="3" />
+                  <path d="M 95 40 Q 135 15 175 55" fill={theme.hair} opacity="0.5" stroke={theme.hair} strokeWidth="3" />
                 </>
               )}
             </g>
@@ -423,8 +426,9 @@ const AIAvatar = ({ size = 'large' }) => {
                 <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={isMale ? "2.5" : "2"} fill="none" strokeLinecap="round" />
                 {!isMale && (
                   <>
-                    <path d="M -11 -2 Q -14 -6 -16 -5" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                    <path d="M -8 -8 Q -10 -12 -12 -12" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                    <path d="M -10 -2 Q -15 -8 -18 -6" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <path d="M -6 -9 Q -10 -15 -14 -14" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
+                    <path d="M -2 -11 Q -4 -16 -6 -16" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </>
                 )}
               </g>
@@ -443,8 +447,9 @@ const AIAvatar = ({ size = 'large' }) => {
                 <path d="M -11 -2 Q 0 -12 11 -2" stroke={theme.hair} strokeWidth={isMale ? "2.5" : "2"} fill="none" strokeLinecap="round" />
                 {!isMale && (
                   <>
-                    <path d="M 11 -2 Q 14 -6 16 -5" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                    <path d="M 8 -8 Q 10 -12 12 -12" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                    <path d="M 10 -2 Q 15 -8 18 -6" stroke={theme.hair} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                    <path d="M 6 -9 Q 10 -15 14 -14" stroke={theme.hair} strokeWidth="2" fill="none" strokeLinecap="round" />
+                    <path d="M 2 -11 Q 4 -16 6 -16" stroke={theme.hair} strokeWidth="1.5" fill="none" strokeLinecap="round" />
                   </>
                 )}
               </g>
