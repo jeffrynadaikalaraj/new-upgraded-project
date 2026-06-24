@@ -70,67 +70,88 @@ const speakText = async (text) => {
   
   utterance.lang = lang;
   
-  // Select voice based on theme and language
+  // ─── Voice Discovery & Classification ─────────────────────────
   const voices = window.speechSynthesis.getVoices();
   const langPrefix = lang.split('-')[0];
-  const langVoices = voices.filter(v => v.lang.startsWith(langPrefix)) || voices;
+  const langVoices = voices.filter(v => v.lang.startsWith(langPrefix));
+  const voicePool = langVoices.length > 0 ? langVoices : voices;
   
-  // Prioritize high-quality neural/natural voices built into the OS
-  const isHighQuality = (v) => v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Online');
-  const hqVoices = langVoices.filter(isHighQuality);
-  const voiceList = hqVoices.length > 0 ? hqVoices : langVoices;
+  // Classify voice quality tiers
+  const isNeural = (v) => /Natural|Neural|Enhanced|Premium|Google|Online|Wavenet/i.test(v.name);
+  const isMaleVoice = (v) => /\bMale\b|Guy|David|Daniel|Alex|Matthew|Brian|Mark|Andrew|James|Christopher|Eric|Ryan|Adam|George|Thomas/i.test(v.name);
+  const isFemaleVoice = (v) => /\bFemale\b|Aria|Jenny|Zira|Samantha|Joanna|Salli|Kendra|Ivy|Amy|Emma|Lucy|Olivia|Susan|Hazel|Karen|Catherine|Moira|Tessa/i.test(v.name);
+  const isBritish = (v) => /UK|British|George|Hazel|Daniel|en-GB|en_GB/i.test(v.name) || v.lang === 'en-GB';
   
-  // Theme-based Voice Adjustments for fluent human-like or robotic reads
+  // Smart voice finder: tries neural first, then any match, then fallback
+  const findVoice = (matcher) => {
+    return voicePool.find(v => matcher(v) && isNeural(v))
+        || voicePool.find(v => matcher(v))
+        || voicePool[0];
+  };
+
+  // ─── Theme-Specific Voice Profiles ────────────────────────────
+  // Each theme gets a radically different voice personality
   let preferredVoice;
-  utterance.rate = 1.35; // Very fast and fluent like a human
-  utterance.pitch = 1.0;
 
   switch (theme) {
-    case 'anime':
-      // Extremely high pitch, super fast for classic anime character feel
-      utterance.pitch = 2.0;
-      utterance.rate = 1.5;
-      preferredVoice = voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name) && isHighQuality(v)) 
-        || voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name)) || voiceList[0];
-      break;
-      
-    case 'jarvis':
-      // Very deep, robotic, calculated pitch
-      utterance.pitch = 0.2;
-      utterance.rate = 1.25;
-      preferredVoice = voiceList.find(v => /UK|British|George|Hazel|David/i.test(v.name) && /Male|Guy/i.test(v.name))
-        || voiceList.find(v => /Male|Guy|David|Daniel|Alex/i.test(v.name)) || voiceList[0];
-      break;
-
-    case 'cyber':
-      // Deep, aggressive, robotic pitch
-      utterance.pitch = 0.1;
-      utterance.rate = 1.3;
-      preferredVoice = voiceList.find(v => /Male|Guy|Matthew|Brian/i.test(v.name)) || voiceList[0];
-      break;
-
-    case 'minimal':
-      // Neutral, balanced, extremely fluent
-      utterance.pitch = 1.0;
-      utterance.rate = 1.35;
-      preferredVoice = voiceList.find(v => /Aria|Jenny|Google/i.test(v.name)) || voiceList[0];
-      break;
-
     case 'male':
-      // Normal Male, very fluent
-      utterance.pitch = 0.9;
-      utterance.rate = 1.35;
-      preferredVoice = voiceList.find(v => /Male|Guy|David|Daniel|Alex|Matthew|Brian/i.test(v.name) && isHighQuality(v))
-        || voiceList.find(v => /Male|Guy|David|Daniel|Alex|Matthew|Brian/i.test(v.name)) || voiceList[0];
+      // ── BOLD MALE: Deep, commanding, confident ──
+      utterance.pitch = 0.7;       // Noticeably deep
+      utterance.rate = 1.15;       // Steady, authoritative pace
+      utterance.volume = 1.0;
+      preferredVoice = findVoice(v => isMaleVoice(v) && !isBritish(v));
       break;
 
     case 'female':
+      // ── WARM FEMALE: Clear, warm, engaging ──
+      utterance.pitch = 1.15;      // Natural feminine register
+      utterance.rate = 1.25;       // Fluent and warm
+      utterance.volume = 1.0;
+      preferredVoice = findVoice(v => isFemaleVoice(v) && !isBritish(v));
+      break;
+
+    case 'jarvis':
+      // ── AI BUTLER: Deep British accent, precise, calculated ──
+      utterance.pitch = 0.3;       // Very deep, synthetic AI tone
+      utterance.rate = 1.05;       // Slow and deliberate like an AI assistant
+      utterance.volume = 0.95;
+      preferredVoice = findVoice(v => isBritish(v) && isMaleVoice(v))
+                    || findVoice(v => isBritish(v))
+                    || findVoice(v => isMaleVoice(v));
+      break;
+
+    case 'cyber':
+      // ── ROBOT: Ultra-low, mechanical, cold ──
+      utterance.pitch = 0.15;      // Extreme bass — sounds genuinely robotic
+      utterance.rate = 0.95;       // Slightly slow, mechanical cadence
+      utterance.volume = 0.9;
+      // Prefer any male voice to amplify the robotic deepness
+      preferredVoice = findVoice(v => isMaleVoice(v));
+      break;
+
+    case 'minimal':
+      // ── CLEAN AI: Neutral, gender-ambiguous, precise ──
+      utterance.pitch = 0.95;      // Almost flat — very neutral
+      utterance.rate = 1.2;        // Clean, measured pace
+      utterance.volume = 0.85;     // Slightly quieter — understated
+      // Pick whichever neural voice sounds most "default"
+      preferredVoice = findVoice(v => isNeural(v))
+                    || voicePool[0];
+      break;
+
+    case 'anime':
+      // ── ANIME CHARACTER: High-energy, expressive, youthful female ──
+      utterance.pitch = 2.0;       // Max high pitch for anime kawaii effect
+      utterance.rate = 1.55;       // Very fast, excited delivery
+      utterance.volume = 1.0;
+      preferredVoice = findVoice(v => isFemaleVoice(v) && /Ivy|Emily|Samantha|Jenny|Aria/i.test(v.name))
+                    || findVoice(v => isFemaleVoice(v));
+      break;
+
     default:
-      // Normal Female, very fluent
-      utterance.pitch = 1.1;
-      utterance.rate = 1.35;
-      preferredVoice = voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha|Google US English/i.test(v.name) && isHighQuality(v))
-        || voiceList.find(v => /Female|Aria|Jenny|Zira|Samantha/i.test(v.name)) || voiceList[0];
+      utterance.pitch = 1.0;
+      utterance.rate = 1.2;
+      preferredVoice = voicePool[0];
       break;
   }
 
@@ -138,7 +159,7 @@ const speakText = async (text) => {
     utterance.voice = preferredVoice;
   }
 
-  window.speechSynthesis.cancel(); // Stop current speaking
+  window.speechSynthesis.cancel(); // Stop any current speaking
   
   // Sync avatar state and play ambient FX
   utterance.onstart = () => {
@@ -146,6 +167,10 @@ const speakText = async (text) => {
     sfx.playSpeechAmbience(theme);
   };
   utterance.onend = () => {
+    useChatStore.getState().setIsSpeakingAudio(false);
+    sfx.stopSpeechAmbience();
+  };
+  utterance.onerror = () => {
     useChatStore.getState().setIsSpeakingAudio(false);
     sfx.stopSpeechAmbience();
   };

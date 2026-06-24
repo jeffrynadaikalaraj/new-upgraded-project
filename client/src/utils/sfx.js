@@ -129,8 +129,31 @@ class SoundEffects {
 
       this.ambienceGain.gain.setValueAtTime(0, t);
       this.ambienceGain.gain.linearRampToValueAtTime(0.015, t + 0.5);
+    } else if (theme === 'male') {
+      // Deep warm bass undertone — reinforces bold masculine voice
+      this.ambienceOsc.type = 'sine';
+      this.ambienceOsc.frequency.setValueAtTime(60, t); // Deep bass hum
+
+      this.ambienceGain.gain.setValueAtTime(0, t);
+      this.ambienceGain.gain.linearRampToValueAtTime(0.018, t + 0.4);
+    } else if (theme === 'female') {
+      // Soft warm harmonic — subtle feminine warmth
+      this.ambienceOsc.type = 'sine';
+      this.ambienceOsc.frequency.setValueAtTime(220, t); // Warm mid-range
+
+      const lfo = this.audioCtx.createOscillator();
+      lfo.frequency.value = 2; // Very gentle vibrato
+      const lfoGain = this.audioCtx.createGain();
+      lfoGain.gain.value = 15;
+      lfo.connect(lfoGain);
+      lfoGain.connect(this.ambienceOsc.frequency);
+      lfo.start(t);
+      this.ambienceLfo = lfo;
+
+      this.ambienceGain.gain.setValueAtTime(0, t);
+      this.ambienceGain.gain.linearRampToValueAtTime(0.012, t + 0.5);
     } else {
-      // No ambience for minimal/human
+      // No ambience for minimal or unknown
       return;
     }
 
