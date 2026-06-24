@@ -26,10 +26,13 @@ export const useDocumentStore = create((set, get) => ({
       const formData = new FormData();
       formData.append('file', file);
       const res = await api.post('/documents/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          set({ uploadProgress: percentCompleted });
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            set({ uploadProgress: percentCompleted });
+          } else {
+            set({ uploadProgress: 100 });
+          }
         }
       });
       const newDoc = res.data.data;
