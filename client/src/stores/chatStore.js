@@ -122,11 +122,12 @@ const speakText = async (text) => {
 
     case 'cyber':
       // ── ROBOT: Ultra-low, mechanical, cold ──
-      utterance.pitch = 0.15;      // Extreme bass — sounds genuinely robotic
-      utterance.rate = 0.95;       // Slightly slow, mechanical cadence
-      utterance.volume = 0.9;
-      // Prefer any male voice to amplify the robotic deepness
-      preferredVoice = findVoice(v => isMaleVoice(v));
+      utterance.pitch = 0.01;      // Absolute minimum pitch for maximum distortion
+      utterance.rate = 0.85;       // Slow, mechanical cadence
+      utterance.volume = 1.0;
+      // Try to find known robotic/flat voices first
+      preferredVoice = findVoice(v => /Mark|Zira|Microsoft Desktop/i.test(v.name))
+                    || findVoice(v => isMaleVoice(v));
       break;
 
     case 'minimal':
