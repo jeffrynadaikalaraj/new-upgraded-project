@@ -19,7 +19,7 @@ const formatSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const UploadZone = ({ onUpload, isUploading }) => {
+const UploadZone = ({ onUpload, isUploading, uploadProgress }) => {
   const [dragging, setDragging] = useState(false);
   const [staged, setStaged] = useState(null);
   const [validationError, setValidationError] = useState('');
@@ -128,6 +128,7 @@ const UploadZone = ({ onUpload, isUploading }) => {
               <button
                 onClick={() => setStaged(null)}
                 className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+                disabled={isUploading}
               >
                 <X size={16} />
               </button>
@@ -137,11 +138,38 @@ const UploadZone = ({ onUpload, isUploading }) => {
                 className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all"
               >
                 {isUploading ? (
-                  <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+                  <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {uploadProgress}%</>
                 ) : (
                   'Upload & Analyze'
                 )}
               </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Progress Bar */}
+      <AnimatePresence>
+        {isUploading && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3">
+              <div className="flex items-center justify-between text-xs text-slate-300 mb-2">
+                <span>Uploading...</span>
+                <span className="font-semibold text-indigo-400">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
+                <motion.div
+                  className="bg-indigo-500 h-2 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${uploadProgress}%` }}
+                  transition={{ ease: "easeOut", duration: 0.2 }}
+                />
+              </div>
             </div>
           </motion.div>
         )}

@@ -6,21 +6,27 @@ import UploadZone from '../components/documents/UploadZone';
 import DocumentCard from '../components/documents/DocumentCard';
 import StudyCompanion from '../components/documents/StudyCompanion';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import MessageBubble from '../components/chat/MessageBubble';
 
 // ─── Document Viewer Panel ────────────────────────────────────────────────────
 const DocumentViewer = ({ doc, onClose }) => {
   const { askQuestion, isAsking } = useDocumentStore();
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
   const [showExtracted, setShowExtracted] = useState(false);
   const [activeTab, setActiveTab] = useState('details'); // 'details' | 'study'
 
   const handleAsk = async () => {
     if (!question.trim()) return;
+    const userMessage = { role: 'user', content: question.trim() };
+    setChatHistory(prev => [...prev, userMessage]);
+    setQuestion('');
     try {
-      const result = await askQuestion(doc._id, question.trim());
-      setAnswer(result);
-    } catch (_) {}
+      const result = await askQuestion(doc._id, userMessage.content);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: result }]);
+    } catch (_) {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Failed to get an answer. Please try again.' }]);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -124,6 +130,19 @@ const DocumentViewer = ({ doc, onClose }) => {
             <Sparkles size={14} className="text-purple-400" />
             <p className="text-xs font-bold text-purple-400 uppercase tracking-wider">Ask AI About This Document</p>
           </div>
+          
+          {/* Chat History */}
+          {(chatHistory.length > 0 || isAsking) && (
+            <div className="mb-4 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+              {chatHistory.map((msg, i) => (
+                <MessageBubble key={i} message={msg} />
+              ))}
+              {isAsking && (
+                <MessageBubble message={{ role: 'assistant', content: '', isStreaming: true }} />
+              )}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <input
               value={question}
@@ -142,21 +161,6 @@ const DocumentViewer = ({ doc, onClose }) => {
                 : <Send size={16} />}
             </button>
           </div>
-
-          <AnimatePresence>
-            {answer && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 bg-purple-500/5 border border-purple-500/20 rounded-xl p-4"
-              >
-                <p className="text-xs font-semibold text-purple-400 mb-2 flex items-center gap-1.5">
-                  <Sparkles size={12} /> AI Answer
-                </p>
-                <p className="text-sm text-slate-200 leading-relaxed">{answer}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
       ) : (
@@ -195,7 +199,7 @@ const GridSkeleton = () => (
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const DocumentsPage = () => {
   const {
-    documents, selectedDocument, isLoading, isUploading, error,
+    documents, selectedDocument, isLoading, isUploading, uploadProgress, error,
     fetchDocuments, uploadDocument, getDocument, selectDocument, deleteDocument, clearError
   } = useDocumentStore();
   
@@ -253,7 +257,7 @@ const DocumentsPage = () => {
         <div className="flex flex-col lg:w-[420px] xl:w-[480px] flex-shrink-0 border-r border-slate-800 overflow-hidden">
           {/* Upload Zone */}
           <div className="p-6 border-b border-slate-800 flex-shrink-0">
-            <UploadZone onUpload={uploadDocument} isUploading={isUploading} />
+            <UploadZone onUpload={uploadDocument} isUploading={isUploading} uploadProgress={uploadProgress} />
           </div>
 
           {/* Documents grid */}
