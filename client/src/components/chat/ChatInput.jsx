@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Paperclip } from 'lucide-react';
+import { Send, Loader2, Paperclip, X } from 'lucide-react';
 import VoiceButton from './VoiceButton';
 import { useChatStore } from '../../stores/chatStore';
 import { useDocumentStore } from '../../stores/documentStore';
@@ -10,13 +10,16 @@ const ChatInput = ({ onSendMessage, disabled }) => {
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const { setIsUserTyping } = useChatStore();
-  const { uploadDocument, isUploading, uploadProgress } = useDocumentStore();
+  const { uploadDocument, isUploading, uploadProgress, error, clearError } = useDocumentStore();
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       try {
-        await uploadDocument(file);
+        const newDoc = await uploadDocument(file);
+        const textContent = newDoc.extractedText || newDoc.summary || 'No text could be extracted.';
+        const contextMsg = `I have attached a document: "${newDoc.originalName}".\n\nHere is the content/summary of the document:\n\n${textContent}\n\nPlease acknowledge that you have received this document and let me know if you are ready to answer questions about it.`;
+        onSendMessage(contextMsg);
       } catch (err) {
         console.error('Upload failed:', err);
       }
@@ -95,6 +98,16 @@ const ChatInput = ({ onSendMessage, disabled }) => {
           <div className="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden">
             <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${uploadProgress}%` }} />
           </div>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-500/90 backdrop-blur-sm border border-red-500/50 rounded-xl p-3 shadow-lg absolute -top-12 left-4 right-4 z-20 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-white text-xs font-medium">
+            <span className="font-bold text-red-200">Error:</span> {error}
+          </div>
+          <button onClick={clearError} type="button" className="text-red-200 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
         </div>
       )}
 

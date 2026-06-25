@@ -78,8 +78,8 @@ const speakText = async (text) => {
   
   // Classify voice quality tiers
   const isNeural = (v) => /Natural|Neural|Enhanced|Premium|Google|Online|Wavenet/i.test(v.name);
-  const isMaleVoice = (v) => /\bMale\b|Guy|David|Daniel|Alex|Matthew|Brian|Mark|Andrew|James|Christopher|Eric|Ryan|Adam|George|Thomas/i.test(v.name);
-  const isFemaleVoice = (v) => /\bFemale\b|Aria|Jenny|Zira|Samantha|Joanna|Salli|Kendra|Ivy|Amy|Emma|Lucy|Olivia|Susan|Hazel|Karen|Catherine|Moira|Tessa/i.test(v.name);
+  const isMaleVoice = (v) => /\bMale\b|Guy|David|Daniel|Alex|Matthew|Brian|Mark|Andrew|James|Christopher|Eric|Ryan|Adam|George|Thomas|William/i.test(v.name);
+  const isFemaleVoice = (v) => /\bFemale\b|Aria|Jenny|Zira|Samantha|Joanna|Salli|Kendra|Ivy|Amy|Emma|Lucy|Olivia|Susan|Hazel|Karen|Catherine|Moira|Tessa|Victoria/i.test(v.name);
   const isBritish = (v) => /UK|British|George|Hazel|Daniel|en-GB|en_GB/i.test(v.name) || v.lang === 'en-GB';
   
   // Smart voice finder: tries neural first, then any match, then fallback
@@ -99,7 +99,10 @@ const speakText = async (text) => {
       utterance.pitch = 0.7;       // Noticeably deep
       utterance.rate = 1.15;       // Steady, authoritative pace
       utterance.volume = 1.0;
-      preferredVoice = findVoice(v => isMaleVoice(v) && !isBritish(v));
+      preferredVoice = findVoice(v => isMaleVoice(v) && !isBritish(v))
+                    || findVoice(v => isMaleVoice(v))
+                    || findVoice(v => !isFemaleVoice(v))
+                    || voicePool[0];
       break;
 
     case 'female':
@@ -107,7 +110,10 @@ const speakText = async (text) => {
       utterance.pitch = 1.15;      // Natural feminine register
       utterance.rate = 1.25;       // Fluent and warm
       utterance.volume = 1.0;
-      preferredVoice = findVoice(v => isFemaleVoice(v) && !isBritish(v));
+      preferredVoice = findVoice(v => isFemaleVoice(v) && !isBritish(v))
+                    || findVoice(v => isFemaleVoice(v))
+                    || findVoice(v => !isMaleVoice(v))
+                    || voicePool[0];
       break;
 
     case 'jarvis':

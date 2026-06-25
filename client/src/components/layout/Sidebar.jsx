@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   MessageSquare, Target, Activity, LayoutDashboard, Settings,
-  LogOut, PlusCircle, ChevronLeft, ChevronRight, Trash2, Brain, Calendar, BarChart3, FileBarChart, FileText
+  LogOut, PlusCircle, ChevronLeft, ChevronRight, Trash2, Brain, Calendar, BarChart3, FileBarChart
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useChatStore } from '../../stores/chatStore';
