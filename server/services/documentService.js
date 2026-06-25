@@ -33,25 +33,22 @@ const processDocument = async (file) => {
     return text.trim();
   }
 
-  // ── PDF — attempt text-layer extraction via pdf-parse if available,
-  //         otherwise fall back to OCR on first page via Tesseract ──
+  // ── PDF — attempt text-layer extraction via pdf-parse
   if (SUPPORTED_PDF_TYPES.includes(mimetype)) {
     try {
-      // Dynamically require pdf-parse (optional dep); if not installed, falls through
       const pdfParse = require('pdf-parse');
       const dataBuffer = fs.readFileSync(filePath);
       const pdfData = await pdfParse(dataBuffer);
-      const text = pdfData.text.trim();
-      if (text.length > 20) return text; // usable text found in layer
-    } catch (_) {
-      // pdf-parse not installed or page has no text layer → OCR fallback
+      const text = (pdfData.text || '').trim();
+      
+      if (!text || text.length < 5) {
+        throw new Error("Could not extract text from this PDF (it might be scanned). OCR for PDFs is not supported on this tier.");
+      }
+      return text;
+    } catch (err) {
+      if (err.message.includes('OCR for PDFs')) throw err;
+      throw new Error(`Failed to parse PDF: ${err.message}`);
     }
-
-    // OCR fallback for scanned PDFs (treat first-page as image via Tesseract buffer)
-    const { data: { text } } = await Tesseract.recognize(filePath, 'eng', {
-      logger: () => {}
-    });
-    return text.trim();
   }
 
   // ── Audio/Video — Whisper Transcription ──────────────────────────

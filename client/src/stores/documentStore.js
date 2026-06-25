@@ -26,9 +26,16 @@ export const useDocumentStore = create((set, get) => ({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Use api.postForm() — axios v1.x method that correctly sets
-      // multipart/form-data with boundary, while keeping auth interceptors
-      const res = await api.postForm('/documents/upload', formData, {
+      // We use standard api.post to keep all Auth interceptors (which fixes the 401).
+      // We use transformRequest to aggressively delete the hardcoded application/json 
+      // header so the browser natively adds multipart/form-data WITH the correct boundary.
+      const res = await api.post('/documents/upload', formData, {
+        transformRequest: [(data, headers) => {
+          delete headers['Content-Type'];
+          if (headers.post) delete headers.post['Content-Type'];
+          if (headers.common) delete headers.common['Content-Type'];
+          return data;
+        }],
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
