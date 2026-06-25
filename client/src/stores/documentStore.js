@@ -26,6 +26,9 @@ export const useDocumentStore = create((set, get) => ({
       const formData = new FormData();
       formData.append('file', file);
       const res = await api.post('/documents/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
