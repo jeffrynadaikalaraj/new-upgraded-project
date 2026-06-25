@@ -18,7 +18,6 @@ import DashboardPage from './pages/DashboardPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
-import DocumentsPage from './pages/DocumentsPage';
 import CalendarPage from './pages/CalendarPage';
 import AvatarSandbox from './pages/AvatarSandbox';
 const Placeholder = ({ title }) => (
@@ -128,12 +127,6 @@ function App() {
           <Route path="/calendar" element={
             <AppLayout>
               <CalendarPage />
-            </AppLayout>
-          } />
-
-          <Route path="/documents" element={
-            <AppLayout>
-              <DocumentsPage />
             </AppLayout>
           } />
 

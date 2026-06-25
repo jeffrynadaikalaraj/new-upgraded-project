@@ -18,7 +18,6 @@ const navItems = [
   { path: '/memories', label: 'Memory', icon: Brain },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/reports', label: 'Reports', icon: FileBarChart },
-  { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 

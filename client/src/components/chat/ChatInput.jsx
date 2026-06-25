@@ -1,13 +1,28 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Paperclip } from 'lucide-react';
 import VoiceButton from './VoiceButton';
 import { useChatStore } from '../../stores/chatStore';
+import { useDocumentStore } from '../../stores/documentStore';
 
 const ChatInput = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const { setIsUserTyping } = useChatStore();
+  const { uploadDocument, isUploading, uploadProgress } = useDocumentStore();
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        await uploadDocument(file);
+      } catch (err) {
+        console.error('Upload failed:', err);
+      }
+    }
+    e.target.value = '';
+  };
 
   const handleMessageChange = (e) => {
     setMessage(e.target.value);
@@ -71,30 +86,63 @@ const ChatInput = ({ onSendMessage, disabled }) => {
   }, [setIsUserTyping]);
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full max-w-4xl mx-auto flex items-end gap-2 p-4">
-      <div className="relative flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
-        <textarea
-          ref={textareaRef}
-          value={message}
-          onChange={handleMessageChange}
-          onKeyDown={handleKeyDown}
-          onInput={handleInput}
-          placeholder="Type your message here..."
-          className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-400 p-4 pr-12 resize-none focus:outline-none scrollbar-thin"
-          rows={1}
-          disabled={disabled}
-          autoFocus
-        />
-        <button
-          type="submit"
-          disabled={!message.trim() || disabled}
-          className="absolute right-2 bottom-2.5 p-2 text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors rounded-lg z-10"
-        >
-          {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-        </button>
-        <VoiceButton onTranscript={handleVoiceTranscript} isGenerating={disabled} />
-      </div>
-    </form>
+    <div className="relative w-full max-w-4xl mx-auto flex flex-col gap-2 p-4">
+      {/* Upload Progress */}
+      {isUploading && (
+        <div className="bg-slate-800/90 backdrop-blur-sm border border-slate-700/50 rounded-xl p-3 shadow-lg absolute -top-12 left-4 right-4 z-20 flex items-center gap-3">
+          <Loader2 className="w-4 h-4 animate-spin text-indigo-400 flex-shrink-0" />
+          <div className="text-xs font-medium text-slate-300 w-24">Uploading {uploadProgress}%</div>
+          <div className="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden">
+            <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${uploadProgress}%` }} />
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="relative w-full flex items-end gap-2">
+        <div className="relative flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+          <textarea
+            ref={textareaRef}
+            value={message}
+            onChange={handleMessageChange}
+            onKeyDown={handleKeyDown}
+            onInput={handleInput}
+            placeholder="Type your message here..."
+            className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-400 p-4 pr-[120px] resize-none focus:outline-none scrollbar-thin"
+            rows={1}
+            disabled={disabled}
+            autoFocus
+          />
+          
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept=".pdf,.txt,.png,.jpg,.jpeg,.webp,.mp3,.wav,.mp4,.m4a,.webm" 
+            onChange={handleFileChange} 
+          />
+          
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || isUploading}
+            className="absolute right-[88px] bottom-2.5 p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg z-10"
+            title="Upload document"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+
+          <VoiceButton onTranscript={handleVoiceTranscript} isGenerating={disabled} />
+          
+          <button
+            type="submit"
+            disabled={!message.trim() || disabled}
+            className="absolute right-2 bottom-2.5 p-2 text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors rounded-lg z-10"
+          >
+            {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

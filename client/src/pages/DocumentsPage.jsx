@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Send, Sparkles, ChevronDown, ChevronUp, X, AlertTriangle } from 'lucide-react';
 import { useDocumentStore } from '../stores/documentStore';
@@ -7,30 +7,35 @@ import DocumentCard from '../components/documents/DocumentCard';
 import StudyCompanion from '../components/documents/StudyCompanion';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import MessageBubble from '../components/chat/MessageBubble';
+import ChatInput from '../components/chat/ChatInput';
 
 // ─── Document Viewer Panel ────────────────────────────────────────────────────
 const DocumentViewer = ({ doc, onClose }) => {
   const { askQuestion, isAsking } = useDocumentStore();
-  const [question, setQuestion] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [showExtracted, setShowExtracted] = useState(false);
   const [activeTab, setActiveTab] = useState('details'); // 'details' | 'study'
+  const messagesEndRef = useRef(null);
 
-  const handleAsk = async () => {
-    if (!question.trim()) return;
-    const userMessage = { role: 'user', content: question.trim() };
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isAsking]);
+
+  const handleAsk = async (text) => {
+    if (!text || !text.trim()) return;
+    const userMessage = { role: 'user', content: text.trim() };
     setChatHistory(prev => [...prev, userMessage]);
-    setQuestion('');
+    
     try {
       const result = await askQuestion(doc._id, userMessage.content);
       setChatHistory(prev => [...prev, { role: 'assistant', content: result }]);
     } catch (_) {
       setChatHistory(prev => [...prev, { role: 'assistant', content: 'Failed to get an answer. Please try again.' }]);
     }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAsk(); }
   };
 
   return (
@@ -73,96 +78,86 @@ const DocumentViewer = ({ doc, onClose }) => {
       </div>
 
       {activeTab === 'details' ? (
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-5">
-        {/* Summary */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={14} className="text-indigo-400" />
-            <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Summary</p>
-          </div>
-          <p className="text-sm text-slate-300 leading-relaxed bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4">
-            {doc.summary || 'No summary available.'}
-          </p>
-        </div>
+        <div className="flex-1 flex flex-col min-h-0 relative bg-slate-800/20">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-5 pb-32">
+            <div className="space-y-5">
+              {/* Summary */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={14} className="text-indigo-400" />
+                  <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Summary</p>
+                </div>
+                <p className="text-sm text-slate-300 leading-relaxed bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4">
+                  {doc.summary || 'No summary available.'}
+                </p>
+              </div>
 
-        {/* Tags */}
-        {doc.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {doc.tags.map((tag, i) => (
-              <span key={i} className="text-xs bg-slate-700/50 text-slate-400 border border-slate-600/30 px-2.5 py-1 rounded-full">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Extracted Text Toggle */}
-        {doc.extractedText && (
-          <div>
-            <button
-              onClick={() => setShowExtracted(s => !s)}
-              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors py-1"
-            >
-              {showExtracted ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {showExtracted ? 'Hide' : 'Show'} Extracted Text
-            </button>
-            <AnimatePresence initial={false}>
-              {showExtracted && (
-                <motion.div
-                  key="extracted"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <pre className="mt-2 text-xs text-slate-400 leading-relaxed bg-slate-900/60 border border-slate-700/30 rounded-xl p-4 whitespace-pre-wrap max-h-48 overflow-y-auto custom-scrollbar font-mono">
-                    {doc.extractedText}
-                  </pre>
-                </motion.div>
+              {/* Tags */}
+              {doc.tags?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {doc.tags.map((tag, i) => (
+                    <span key={i} className="text-xs bg-slate-700/50 text-slate-400 border border-slate-600/30 px-2.5 py-1 rounded-full">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
               )}
-            </AnimatePresence>
-          </div>
-        )}
 
-        {/* Q&A Section */}
-        <div className="border-t border-slate-700/40 pt-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={14} className="text-purple-400" />
-            <p className="text-xs font-bold text-purple-400 uppercase tracking-wider">Ask AI About This Document</p>
+              {/* Extracted Text Toggle */}
+              {doc.extractedText && (
+                <div>
+                  <button
+                    onClick={() => setShowExtracted(s => !s)}
+                    className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors py-1"
+                  >
+                    {showExtracted ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    {showExtracted ? 'Hide' : 'Show'} Extracted Text
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {showExtracted && (
+                      <motion.div
+                        key="extracted"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <pre className="mt-2 text-xs text-slate-400 leading-relaxed bg-slate-900/60 border border-slate-700/30 rounded-xl p-4 whitespace-pre-wrap max-h-48 overflow-y-auto custom-scrollbar font-mono">
+                          {doc.extractedText}
+                        </pre>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* Q&A Section */}
+              <div className="border-t border-slate-700/40 pt-5 mt-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles size={14} className="text-purple-400" />
+                  <p className="text-xs font-bold text-purple-400 uppercase tracking-wider">Ask AI About This Document</p>
+                </div>
+                
+                {/* Chat History */}
+                {(chatHistory.length > 0 || isAsking) && (
+                  <div className="mb-4 space-y-4">
+                    {chatHistory.map((msg, i) => (
+                      <MessageBubble key={i} message={msg} />
+                    ))}
+                    {isAsking && (
+                      <MessageBubble message={{ role: 'assistant', content: '', isStreaming: true }} />
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           
-          {/* Chat History */}
-          {(chatHistory.length > 0 || isAsking) && (
-            <div className="mb-4 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-              {chatHistory.map((msg, i) => (
-                <MessageBubble key={i} message={msg} />
-              ))}
-              {isAsking && (
-                <MessageBubble message={{ role: 'assistant', content: '', isStreaming: true }} />
-              )}
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <input
-              value={question}
-              onChange={e => setQuestion(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="What are the key findings?"
-              className="flex-1 bg-slate-700/40 border border-slate-600/40 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all"
-            />
-            <button
-              onClick={handleAsk}
-              disabled={isAsking || !question.trim()}
-              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white p-2.5 rounded-xl transition-all flex-shrink-0"
-            >
-              {isAsking
-                ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                : <Send size={16} />}
-            </button>
+          <div className="absolute bottom-0 left-0 w-full bg-slate-800/95 backdrop-blur-xl border-t border-slate-700/50 py-2 px-1 z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
+            <ChatInput onSendMessage={handleAsk} disabled={isAsking} />
           </div>
         </div>
-      </div>
       ) : (
         <div className="flex-1 overflow-hidden">
           <StudyCompanion doc={doc} />
