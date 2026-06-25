@@ -27,7 +27,7 @@ export const useDocumentStore = create((set, get) => ({
       formData.append('file', file);
       const res = await api.post('/documents/upload', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': undefined
         },
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
