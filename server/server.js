@@ -11,17 +11,16 @@ connectDB().then(() => {
     console.log(`Server running in ${config.NODE_ENV} mode on port ${config.PORT}`);
   });
 
-  // Handle unhandled promise rejections
+  // Handle unhandled promise rejections without crashing the server
   process.on('unhandledRejection', (err, promise) => {
-    console.log(`Error: ${err.message}`);
-    // Close server & exit process
-    server.close(() => process.exit(1));
+    console.error(`[Unhandled Rejection]: ${err.message}`);
+    console.error(err);
   });
 
-  // Handle uncaught exceptions
+  // Handle uncaught exceptions without crashing the server
   process.on('uncaughtException', (err) => {
-    console.error(`Uncaught Exception: ${err.message}`);
-    process.exit(1);
+    console.error(`[Uncaught Exception]: ${err.message}`);
+    console.error(err);
   });
 }).catch(err => {
   console.error(`Failed to connect to DB: ${err.message}`);

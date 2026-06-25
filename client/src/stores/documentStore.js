@@ -26,25 +26,32 @@ export const useDocumentStore = create((set, get) => ({
       const formData = new FormData();
       formData.append('file', file);
 
-      // We use standard api.post to keep all Auth interceptors (which fixes the 401).
-      // We use transformRequest to aggressively delete the hardcoded application/json 
-      // header so the browser natively adds multipart/form-data WITH the correct boundary.
-      const res = await api.post('/documents/upload', formData, {
-        transformRequest: [(data, headers) => {
-          delete headers['Content-Type'];
-          if (headers.post) delete headers.post['Content-Type'];
-          if (headers.common) delete headers.common['Content-Type'];
-          return data;
-        }],
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            set({ uploadProgress: percentCompleted });
-          } else {
-            set({ uploadProgress: 100 });
-          }
-        }
+      // Bypass Axios completely for file uploads to guarantee the browser handles 
+      // the multipart/form-data boundary correctly without any interceptor interference.
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_URL || '/api';
+      
+      // We don't get upload progress with fetch easily, so we just set it to 50% while it works
+      set({ uploadProgress: 50 });
+
+      const response = await fetch(`${baseURL}/documents/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // DO NOT set Content-Type, fetch will set it automatically with the boundary!
+        },
+        body: formData
       });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Upload failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const res = { data }; // mock axios response shape for the code below
+      
+      set({ uploadProgress: 100 });
 
       const newDoc = res.data.data;
       set(state => ({
