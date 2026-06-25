@@ -25,20 +25,34 @@ export const useDocumentStore = create((set, get) => ({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await api.post('/documents/upload', formData, {
+
+      // Use native fetch to avoid axios forcing Content-Type: application/json
+      // which prevents multer from parsing multipart/form-data
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_URL || '/api';
+
+      set({ uploadProgress: 30 }); // Show some progress immediately
+
+      const response = await fetch(`${baseURL}/documents/upload`, {
+        method: 'POST',
         headers: {
-          'Content-Type': undefined
+          'Authorization': `Bearer ${token}`
+          // Do NOT set Content-Type — browser auto-adds multipart/form-data with boundary
         },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            set({ uploadProgress: percentCompleted });
-          } else {
-            set({ uploadProgress: 100 });
-          }
-        }
+        body: formData
       });
-      const newDoc = res.data.data;
+
+      set({ uploadProgress: 80 });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw { response: { data } };
+      }
+
+      set({ uploadProgress: 100 });
+
+      const newDoc = data.data;
       set(state => ({
         documents: [newDoc, ...state.documents],
         selectedDocument: newDoc,
@@ -47,7 +61,8 @@ export const useDocumentStore = create((set, get) => ({
       }));
       return newDoc;
     } catch (err) {
-      set({ error: err.response?.data?.error || 'Upload failed', isUploading: false, uploadProgress: 0 });
+      const errorMsg = err?.response?.data?.error || err?.message || 'Upload failed';
+      set({ error: errorMsg, isUploading: false, uploadProgress: 0 });
       throw err;
     }
   },
