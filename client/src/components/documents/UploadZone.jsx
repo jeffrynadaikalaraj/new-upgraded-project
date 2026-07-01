@@ -31,7 +31,10 @@ const UploadZone = ({ onUpload, isUploading, uploadProgress }) => {
   ];
 
   const validate = (file) => {
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const allowedExts = ['.pdf','.txt','.png','.jpg','.jpeg','.webp','.mp3','.wav','.mp4','.m4a','.webm'];
+    
+    if (!ALLOWED_TYPES.includes(file.type) && !allowedExts.includes(ext)) {
       setValidationError(`"${file.name}" is not supported. Use PDF, TXT, PNG, JPG, or Audio/Video.`);
       return false;
     }

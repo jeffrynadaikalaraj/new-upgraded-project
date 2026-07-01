@@ -5,6 +5,29 @@ import ActionBadge from './ActionBadge';
 import { useNavigate } from 'react-router-dom';
 import { Target, Activity, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { isNativePlatform } from '../../utils/platform';
+
+// Trigger light haptic feedback on native platforms
+const hapticTap = async () => {
+  if (isNativePlatform()) {
+    try { await Haptics.impact({ style: ImpactStyle.Light }); } catch (e) {}
+  }
+};
+
+const bubbleVariants = {
+  hidden: (isUser) => ({
+    opacity: 0,
+    x: isUser ? 30 : -30,
+    scale: 0.95,
+  }),
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+};
 
 const MessageBubble = ({ message }) => {
   const isUser = message.role === 'user';
@@ -29,19 +52,19 @@ const MessageBubble = ({ message }) => {
     switch(widgetType) {
       case 'LOG_HABIT':
         return (
-          <button key={idx} onClick={() => navigate('/habits')} className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-indigo-400">
+          <button key={idx} onClick={() => { hapticTap(); navigate('/habits'); }} className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white py-3 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-indigo-400 touch-target">
             <Activity className="w-4 h-4" /> Log a Habit Now
           </button>
         );
       case 'CREATE_GOAL':
         return (
-          <button key={idx} onClick={() => navigate('/goals')} className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white py-2 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-rose-400">
+          <button key={idx} onClick={() => { hapticTap(); navigate('/goals'); }} className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white py-3 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-rose-400 touch-target">
             <Target className="w-4 h-4" /> Create a New Goal
           </button>
         );
       case 'VIEW_CALENDAR':
         return (
-          <button key={idx} onClick={() => navigate('/calendar')} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-emerald-400">
+          <button key={idx} onClick={() => { hapticTap(); navigate('/calendar'); }} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white py-3 px-4 rounded-lg shadow-md transition-all mt-3 text-sm font-medium border border-emerald-400 touch-target">
             <Calendar className="w-4 h-4" /> Open Calendar
           </button>
         );
@@ -52,9 +75,10 @@ const MessageBubble = ({ message }) => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 15, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      custom={isUser}
+      variants={bubbleVariants}
+      initial="hidden"
+      animate="visible"
       className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-6`}
     >
       <div 

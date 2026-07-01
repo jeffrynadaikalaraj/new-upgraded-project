@@ -1,8 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
+// Capacitor
+import { App as CapApp } from '@capacitor/app';
+import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar';
+import { Keyboard } from '@capacitor/keyboard';
+import { isNativePlatform, isPluginAvailable } from './utils/platform';
+import notificationService from './services/notifications';
 
 // Layout
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
+import BottomNavigation from './components/layout/BottomNavigation';
 import { useUIStore } from './stores/uiStore';
 import AIAvatar from './components/chat/AIAvatar';
 
@@ -47,18 +56,69 @@ const AppLayout = ({ children }) => {
 
         {/* Floating Avatar for non-chat pages */}
         {!isChatPage && (
-          <div className="absolute bottom-6 right-6 z-50 pointer-events-none group">
+          <div className="absolute bottom-6 right-6 z-50 pointer-events-none group hidden md:block">
             <div className="pointer-events-auto cursor-pointer transition-transform hover:scale-110 shadow-2xl rounded-full bg-slate-900/80 backdrop-blur border border-slate-700 p-2">
               <AIAvatar size="small" />
             </div>
           </div>
         )}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNavigation />
     </div>
   );
 };
 
+/**
+ * Initialize native platform features (Capacitor).
+ * Called once at app startup.
+ */
+function useNativeInit() {
+  useEffect(() => {
+    async function init() {
+      if (!isNativePlatform()) return;
+
+      // Configure Status Bar
+      if (isPluginAvailable('StatusBar')) {
+        try {
+          await StatusBar.setStyle({ style: StatusBarStyle.Dark });
+          await StatusBar.setBackgroundColor({ color: '#0f172a' });
+        } catch (e) {
+          console.warn('[Native] StatusBar setup failed:', e);
+        }
+      }
+
+      // Configure Keyboard behavior
+      if (isPluginAvailable('Keyboard')) {
+        try {
+          Keyboard.setAccessoryBarVisible({ isVisible: false });
+          Keyboard.setScroll({ isDisabled: false });
+        } catch (e) {
+          console.warn('[Native] Keyboard setup failed:', e);
+        }
+      }
+
+      // Handle hardware back button (Android)
+      CapApp.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack) {
+          window.history.back();
+        } else {
+          CapApp.exitApp();
+        }
+      });
+
+      // Initialize push notifications
+      await notificationService.initialize();
+    }
+
+    init();
+  }, []);
+}
+
 function App() {
+  useNativeInit();
+
   return (
     <BrowserRouter>
       <Routes>

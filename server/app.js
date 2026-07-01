@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const { apiLimiter, authLimiter, chatLimiter, uploadLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const config = require('./config/env');
+const setupSwagger = require('./swagger');
 
 // Route files
 const authRoutes = require('./routes/auth');
@@ -15,12 +16,32 @@ const memoryRoutes = require('./routes/memories');
 
 const app = express();
 
+// Initialize Swagger Docs
+setupSwagger(app);
+
 // Security and middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Capacitor needs flexible CSP
+}));
+
+// CORS: Allow web origins and Capacitor native origins
+const allowedOrigins = [
+  'capacitor://localhost',
+  'ionic://localhost',
+  'http://localhost',
+  'http://localhost:3000',
+];
+if (config.CLIENT_URL) {
+  allowedOrigins.push(...config.CLIENT_URL.split(','));
+}
+
 app.use(cors({
-  // In production, allow requests from configured frontend origins
-  origin: config.NODE_ENV === 'production' && config.CLIENT_URL ? config.CLIENT_URL.split(',') : '*',
-  credentials: true
+  origin: config.NODE_ENV === 'production' 
+    ? allowedOrigins 
+    : true, // Allow all in development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

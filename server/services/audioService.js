@@ -6,11 +6,12 @@ const config = require('../config/env');
 /**
  * Transcribe an audio/video file using Groq's Whisper API.
  * @param {string} filePath - Absolute path to the temp file
+ * @param {string} originalName - Original filename to pass to the API
  * @returns {Promise<string>} - The transcribed text
  */
-exports.transcribeAudio = async (filePath) => {
+exports.transcribeAudio = async (filePath, originalName) => {
   const formData = new FormData();
-  formData.append('file', fs.createReadStream(filePath));
+  formData.append('file', fs.createReadStream(filePath), { filename: originalName || 'audio.mp3' });
   formData.append('model', 'whisper-large-v3');
 
   try {

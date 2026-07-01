@@ -1,12 +1,26 @@
 import { create } from 'zustand';
-import api from '../services/api';
+import api, { initTokenCache, setCachedToken, clearCachedToken } from '../services/api';
+import storage from '../utils/storage';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
-  token: localStorage.getItem('token') || null,
+  token: localStorage.getItem('token') || null, // Sync fallback for initial render
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: false,
   error: null,
+
+  /**
+   * Initialize auth state from secure storage.
+   * Should be called once at app startup.
+   */
+  initAuth: async () => {
+    const token = await storage.get('token');
+    if (token) {
+      setCachedToken(token);
+      set({ token, isAuthenticated: true });
+    }
+    await initTokenCache();
+  },
 
   loadUser: async () => {
     if (!get().token) return;
@@ -21,8 +35,9 @@ export const useAuthStore = create((set, get) => ({
         error: null
       });
     } catch (err) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      await storage.remove('token');
+      await storage.remove('refreshToken');
+      clearCachedToken();
       set({ 
         user: null, 
         token: null, 
@@ -38,8 +53,9 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await api.post('/auth/login', { email, password });
       
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('refreshToken', res.data.refreshToken);
+      await storage.set('token', res.data.token);
+      await storage.set('refreshToken', res.data.refreshToken);
+      setCachedToken(res.data.token);
       
       set({
         user: res.data.user,
@@ -62,8 +78,9 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await api.post('/auth/google', { credential });
       
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('refreshToken', res.data.refreshToken);
+      await storage.set('token', res.data.token);
+      await storage.set('refreshToken', res.data.refreshToken);
+      setCachedToken(res.data.token);
       
       set({
         user: res.data.user,
@@ -86,8 +103,9 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await api.post('/auth/register', userData);
       
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('refreshToken', res.data.refreshToken);
+      await storage.set('token', res.data.token);
+      await storage.set('refreshToken', res.data.refreshToken);
+      setCachedToken(res.data.token);
       
       set({
         user: res.data.user,
@@ -105,9 +123,10 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+  logout: async () => {
+    await storage.remove('token');
+    await storage.remove('refreshToken');
+    clearCachedToken();
     set({ user: null, token: null, isAuthenticated: false });
   },
 

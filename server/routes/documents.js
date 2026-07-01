@@ -21,14 +21,14 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB max
   fileFilter: (_req, file, cb) => {
     const allowed = [
-      'image/png', 'image/jpeg', 'image/jpg',
+      'image/png', 'image/jpeg', 'image/jpg', 'image/webp',
       'text/plain', 'application/pdf',
       'audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m4a', 'video/mp4', 'audio/webm'
     ];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: PDF, TXT, PNG, JPG, Audio/Video.`));
+      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: PDF, TXT, PNG, JPG, WebP, Audio/Video.`));
     }
   }
 });

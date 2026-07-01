@@ -53,7 +53,7 @@ const processDocument = async (file) => {
 
   // ── Audio/Video — Whisper Transcription ──────────────────────────
   if (SUPPORTED_AUDIO_TYPES.includes(mimetype)) {
-    const text = await transcribeAudio(filePath);
+    const text = await transcribeAudio(filePath, file.originalname);
     return text.trim();
   }
 

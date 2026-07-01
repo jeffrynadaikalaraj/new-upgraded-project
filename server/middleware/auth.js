@@ -13,6 +13,7 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
+    console.log('[Auth] No token found in headers:', req.headers);
     return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
   }
 
@@ -22,12 +23,13 @@ const protect = async (req, res, next) => {
 
     req.user = await User.findById(decoded.id).select('-passwordHash');
     if (!req.user) {
+      console.log('[Auth] Token decoded but user not found:', decoded.id);
       return res.status(401).json({ success: false, error: 'User not found' });
     }
 
     next();
   } catch (err) {
-    console.error(err);
+    console.error('[Auth] JWT Verify Error:', err.message, 'Token:', token ? token.substring(0, 15) + '...' : 'null');
     return res.status(401).json({ success: false, error: 'Not authorized to access this route' });
   }
 };

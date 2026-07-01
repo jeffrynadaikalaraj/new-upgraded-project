@@ -26,30 +26,57 @@ export const useDocumentStore = create((set, get) => ({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Bypass Axios completely for file uploads to guarantee the browser handles 
-      // the multipart/form-data boundary correctly without any interceptor interference.
-      const token = localStorage.getItem('token');
+      // We bypass Axios completely for file uploads to guarantee FormData and boundary
+      // are handled correctly by the browser without interceptor interference.
+      // We manually handle 401 Token Refresh here.
+      let token = localStorage.getItem('token');
       const baseURL = import.meta.env.VITE_API_URL || '/api';
       
-      // We don't get upload progress with fetch easily, so we just set it to 50% while it works
-      set({ uploadProgress: 50 });
-
-      const response = await fetch(`${baseURL}/documents/upload`, {
+      let response = await fetch(`${baseURL}/documents/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
-          // DO NOT set Content-Type, fetch will set it automatically with the boundary!
         },
         body: formData
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Upload failed with status ${response.status}`);
+      // If token expired, attempt refresh
+      if (response.status === 401) {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          try {
+            const refreshRes = await fetch(`${baseURL}/auth/refresh`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken })
+            });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              token = refreshData.token;
+              localStorage.setItem('token', token);
+              localStorage.setItem('refreshToken', refreshData.refreshToken);
+
+              // Retry upload with new token
+              response = await fetch(`${baseURL}/documents/upload`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                },
+                body: formData
+              });
+            }
+          } catch (refreshErr) {
+            console.error('Failed to refresh token during upload', refreshErr);
+          }
+        }
       }
 
-      const data = await response.json();
-      const res = { data }; // mock axios response shape for the code below
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+      }
+
+      const res = { data: await response.json() }; // shape it like axios response for the code below
       
       set({ uploadProgress: 100 });
 
