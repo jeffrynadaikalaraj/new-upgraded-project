@@ -4,7 +4,7 @@
  * Firebase Cloud Messaging on native platforms.
  * Gracefully degrades to a no-op on web.
  */
-import { PushNotifications } from '@capacitor/push-notifications';
+// import { PushNotifications } from '@capacitor/push-notifications';
 import { isNativePlatform, isPluginAvailable } from '../utils/platform';
 
 class NotificationService {
@@ -18,6 +18,8 @@ class NotificationService {
    * Call this once at app startup (e.g., in main.jsx or App.jsx).
    */
   async initialize() {
+    console.log('[Notifications] Push notifications disabled temporarily.');
+    return;
     if (!isNativePlatform() || !isPluginAvailable('PushNotifications')) {
       console.log('[Notifications] Not on native platform, skipping push setup.');
       return;
@@ -26,14 +28,14 @@ class NotificationService {
     if (this._initialized) return;
 
     // Request permission
-    const permResult = await PushNotifications.requestPermissions();
-    if (permResult.receive !== 'granted') {
-      console.warn('[Notifications] Push notification permission denied.');
-      return;
-    }
+    // const permResult = await PushNotifications.requestPermissions();
+    // if (permResult.receive !== 'granted') {
+    //   console.warn('[Notifications] Push notification permission denied.');
+    //   return;
+    // }
 
     // Register with FCM
-    await PushNotifications.register();
+    // await PushNotifications.register();
 
     // Registration success — you get the FCM token here
     PushNotifications.addListener('registration', (token) => {

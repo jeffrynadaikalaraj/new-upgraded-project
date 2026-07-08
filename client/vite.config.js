@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   server: {
     port: 3000,
@@ -16,7 +17,7 @@ export default defineConfig({
   },
   build: {
     // Output to 'dist' — this is what Capacitor reads (configured in capacitor.config.ts)
-    outDir: 'www',
+    outDir: 'dist',
     sourcemap: false,
     // Optimize chunk size for mobile
     rollupOptions: {

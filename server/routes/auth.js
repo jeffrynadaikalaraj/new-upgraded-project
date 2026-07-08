@@ -13,3 +13,8 @@ router.get('/me', protect, getMe);
 router.put('/consent', protect, updateConsent);
 
 module.exports = router;
+
+
+
+
+
