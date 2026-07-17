@@ -4,11 +4,8 @@ import { sfx } from '../utils/sfx';
 
 const BASE_URL = ''; // Use Vite proxy to avoid CORS issues
 
-// Optional TTS feature toggle - can be linked to a UI setting later
-let isVoiceModeEnabled = true;
-
-const speakText = async (text) => {
-  if (!isVoiceModeEnabled) return;
+export const speakText = async (text, forcePlay = false) => {
+  if (!forcePlay && !useChatStore.getState().isVoiceModeEnabled) return;
   
   // Clean text of markdown and action tags
   const cleanText = text
@@ -45,10 +42,8 @@ const speakText = async (text) => {
         
         // Sync Avatar's speaking state manually (approximate based on audio duration)
         useChatStore.getState().setIsSpeakingAudio(true);
-        sfx.playSpeechAmbience(theme);
         source.onended = () => {
           useChatStore.getState().setIsSpeakingAudio(false);
-          sfx.stopSpeechAmbience();
         };
         return; // Success, skip browser TTS
       } else {
@@ -95,9 +90,8 @@ const speakText = async (text) => {
 
   switch (theme) {
     case 'male':
-      // ── BOLD MALE: Deep, commanding, confident ──
-      utterance.pitch = 0.7;       // Noticeably deep
-      utterance.rate = 1.15;       // Steady, authoritative pace
+      utterance.pitch = 0.9;
+      utterance.rate = 1.0;
       utterance.volume = 1.0;
       preferredVoice = findVoice(v => isMaleVoice(v) && !isBritish(v))
                     || findVoice(v => isMaleVoice(v))
@@ -106,9 +100,8 @@ const speakText = async (text) => {
       break;
 
     case 'female':
-      // ── WARM FEMALE: Clear, warm, engaging ──
-      utterance.pitch = 1.15;      // Natural feminine register
-      utterance.rate = 1.25;       // Fluent and warm
+      utterance.pitch = 1.1;
+      utterance.rate = 1.0;
       utterance.volume = 1.0;
       preferredVoice = findVoice(v => isFemaleVoice(v) && !isBritish(v))
                     || findVoice(v => isFemaleVoice(v))
@@ -117,9 +110,8 @@ const speakText = async (text) => {
       break;
 
     case 'jarvis':
-      // ── AI BUTLER: Deep British accent, precise, calculated ──
-      utterance.pitch = 0.3;       // Very deep, synthetic AI tone
-      utterance.rate = 1.05;       // Slow and deliberate like an AI assistant
+      utterance.pitch = 0.8;
+      utterance.rate = 1.0;
       utterance.volume = 0.95;
       preferredVoice = findVoice(v => isBritish(v) && isMaleVoice(v))
                     || findVoice(v => isBritish(v))
@@ -127,29 +119,24 @@ const speakText = async (text) => {
       break;
 
     case 'cyber':
-      // ── ROBOT: Ultra-low, mechanical, cold ──
-      utterance.pitch = 0.01;      // Absolute minimum pitch for maximum distortion
-      utterance.rate = 0.85;       // Slow, mechanical cadence
+      utterance.pitch = 0.5;
+      utterance.rate = 0.9;
       utterance.volume = 1.0;
-      // Try to find known robotic/flat voices first
       preferredVoice = findVoice(v => /Mark|Zira|Microsoft Desktop/i.test(v.name))
                     || findVoice(v => isMaleVoice(v));
       break;
 
     case 'minimal':
-      // ── CLEAN AI: Neutral, gender-ambiguous, precise ──
-      utterance.pitch = 0.95;      // Almost flat — very neutral
-      utterance.rate = 1.2;        // Clean, measured pace
-      utterance.volume = 0.85;     // Slightly quieter — understated
-      // Pick whichever neural voice sounds most "default"
+      utterance.pitch = 1.0;
+      utterance.rate = 1.0;
+      utterance.volume = 0.85;
       preferredVoice = findVoice(v => isNeural(v))
                     || voicePool[0];
       break;
 
     case 'anime':
-      // ── ANIME CHARACTER: High-energy, expressive, youthful female ──
-      utterance.pitch = 2.0;       // Max high pitch for anime kawaii effect
-      utterance.rate = 1.55;       // Very fast, excited delivery
+      utterance.pitch = 1.2;
+      utterance.rate = 1.1;
       utterance.volume = 1.0;
       preferredVoice = findVoice(v => isFemaleVoice(v) && /Ivy|Emily|Samantha|Jenny|Aria/i.test(v.name))
                     || findVoice(v => isFemaleVoice(v));
@@ -157,7 +144,7 @@ const speakText = async (text) => {
 
     default:
       utterance.pitch = 1.0;
-      utterance.rate = 1.2;
+      utterance.rate = 1.0;
       preferredVoice = voicePool[0];
       break;
   }
@@ -168,18 +155,15 @@ const speakText = async (text) => {
 
   window.speechSynthesis.cancel(); // Stop any current speaking
   
-  // Sync avatar state and play ambient FX
+  // Sync avatar state
   utterance.onstart = () => {
     useChatStore.getState().setIsSpeakingAudio(true);
-    sfx.playSpeechAmbience(theme);
   };
   utterance.onend = () => {
     useChatStore.getState().setIsSpeakingAudio(false);
-    sfx.stopSpeechAmbience();
   };
   utterance.onerror = () => {
     useChatStore.getState().setIsSpeakingAudio(false);
-    sfx.stopSpeechAmbience();
   };
   
   window.speechSynthesis.speak(utterance);
@@ -195,6 +179,8 @@ export const useChatStore = create((set, get) => ({
   isLoadingHistory: false,
   
   // Avatar States
+  isVoiceModeEnabled: false,
+  toggleVoiceMode: () => set(state => ({ isVoiceModeEnabled: !state.isVoiceModeEnabled })),
   avatarTheme: 'female', // 'female', 'male', 'jarvis', 'cyber', 'minimal', 'anime'
   avatarEmotion: 'neutral', // 'neutral', 'happy', 'concerned', 'thinking', 'listening'
   language: 'en-US',

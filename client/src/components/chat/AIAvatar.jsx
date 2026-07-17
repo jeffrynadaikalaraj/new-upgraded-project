@@ -777,11 +777,11 @@ const AIAvatar = ({ size = 'large' }) => {
     let frame, running = true;
     const go = () => {
       if (!running) return;
-      // Simulate natural speech rhythm: mix of small and large openings
+      // Exaggerate mouth openings for more expressive speaking
       const v = Math.random();
-      const open = v < 0.2 ? 0.05 : v < 0.5 ? 0.3 + Math.random() * 0.3 : 0.5 + Math.random() * 0.4;
+      const open = v < 0.2 ? 0.1 : v < 0.5 ? 0.4 + Math.random() * 0.5 : 0.8 + Math.random() * 0.5;
       setMouthOpen(open);
-      const delay = v < 0.2 ? 120 + Math.random() * 80 : 40 + Math.random() * 60;
+      const delay = v < 0.2 ? 100 + Math.random() * 80 : 40 + Math.random() * 50;
       frame = requestAnimationFrame(() => setTimeout(go, delay));
     };
     go();
@@ -803,8 +803,8 @@ const AIAvatar = ({ size = 'large' }) => {
         };
       case 'speaking':
         return {
-          head: { y: [0, -5, -2, -5, 0], rotate: [0, -1.5, 1.5, -1, 0], transition: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } },
-          browL: 0, browR: 0, eyeSquint: 1, cheekGlow: 0.5, mouthCurve: 2, mouthShift: 0,
+          head: { y: [0, -8, -2, -6, 0], rotate: [0, -3, 3, -2, 0], transition: { duration: 2.0, repeat: Infinity, ease: 'easeInOut' } },
+          browL: 4, browR: 3, eyeSquint: 1.1, cheekGlow: 0.8, mouthCurve: 6, mouthShift: 0,
         };
       case 'listening':
         return {

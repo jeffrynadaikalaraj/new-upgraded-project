@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Paperclip, X } from 'lucide-react';
+import { Send, Loader2, Paperclip, X, Volume2, VolumeX } from 'lucide-react';
 import VoiceButton from './VoiceButton';
 import { useChatStore } from '../../stores/chatStore';
 import { useDocumentStore } from '../../stores/documentStore';
@@ -9,7 +9,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const { setIsUserTyping } = useChatStore();
+  const { setIsUserTyping, isVoiceModeEnabled, toggleVoiceMode } = useChatStore();
   const { uploadDocument, isUploading, uploadProgress, error, clearError } = useDocumentStore();
 
   const handleFileChange = async (e) => {
@@ -18,7 +18,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
       try {
         const newDoc = await uploadDocument(file);
         const textContent = newDoc.extractedText || newDoc.summary || 'No text could be extracted.';
-        const contextMsg = `I have attached a document: "${newDoc.originalName}".\n\nHere is the content/summary of the document:\n\n${textContent}\n\nPlease acknowledge that you have received this document and let me know if you are ready to answer questions about it.`;
+        const contextMsg = `[SYSTEM MESSAGE: The user has uploaded an image/document named "${newDoc.originalName}". The system's vision model has analyzed it and extracted the following content and context:]\n\n${textContent}\n\n[End of System Analysis. Please describe what you see based on this analysis and ask the user how they would like to proceed.]`;
         onSendMessage(contextMsg);
       } catch (err) {
         console.error('Upload failed:', err);
@@ -120,7 +120,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
             onKeyDown={handleKeyDown}
             onInput={handleInput}
             placeholder="Type your message here..."
-            className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-500 p-4 pr-[120px] resize-none focus:outline-none scrollbar-thin"
+            className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-500 p-4 pr-[150px] resize-none focus:outline-none scrollbar-thin"
             rows={1}
             disabled={disabled}
             autoFocus
@@ -138,10 +138,21 @@ const ChatInput = ({ onSendMessage, disabled }) => {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploading}
-            className="absolute right-[88px] bottom-2.5 p-2 text-slate-400 hover:text-brand-400 hover:bg-brand-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-lg z-10"
+            className="absolute right-[118px] bottom-2.5 p-2 text-slate-400 hover:text-brand-400 hover:bg-brand-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-lg z-10"
             title="Upload document"
           >
             <Paperclip className="w-5 h-5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleVoiceMode}
+            className={`absolute right-[88px] bottom-2.5 p-2 transition-all duration-300 rounded-lg z-10 ${
+              isVoiceModeEnabled ? 'text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20' : 'text-slate-400 hover:text-slate-300 hover:bg-white/5'
+            }`}
+            title={isVoiceModeEnabled ? "Auto-Speech ON" : "Auto-Speech OFF"}
+          >
+            {isVoiceModeEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
           </button>
 
           <VoiceButton onTranscript={handleVoiceTranscript} isGenerating={disabled} />

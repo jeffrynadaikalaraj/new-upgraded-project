@@ -3,10 +3,11 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ActionBadge from './ActionBadge';
 import { useNavigate } from 'react-router-dom';
-import { Target, Activity, Calendar, Copy, Share2, GitBranch, Check } from 'lucide-react';
+import { Target, Activity, Calendar, Copy, Share2, GitBranch, Check, Volume2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { isNativePlatform } from '../../utils/platform';
+import { speakText } from '../../stores/chatStore';
 
 // Trigger light haptic feedback on native platforms
 const hapticTap = async () => {
@@ -174,6 +175,14 @@ const MessageBubble = ({ message }) => {
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? <span className="text-emerald-400">Copied!</span> : 'Copy'}
+            </button>
+            <button 
+              onClick={() => speakText(message.content, true)}
+              className="flex items-center gap-1.5 text-[11px] hover:text-indigo-300 transition-colors"
+              title="Read aloud"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              Play
             </button>
             <button 
               onClick={handleShare}
