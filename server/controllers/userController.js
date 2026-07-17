@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
@@ -8,19 +9,17 @@ const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 
 // GET /api/users/me
-exports.getProfile = async (req, res, next) => {
-  try {
+exports.getProfile = asyncHandler(async (req, res, next) => {
+
     const user = await User.findById(req.user.id).select('-passwordHash');
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
     res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // PUT /api/users/me
-exports.updateProfile = async (req, res, next) => {
-  try {
+exports.updateProfile = asyncHandler(async (req, res, next) => {
+
     const { name, timezone, avatarColor, theme, aiMode, dailyPlanTime, weeklyReviewDay } = req.body;
 
     // Build update object safely — only update fields provided
@@ -42,14 +41,12 @@ exports.updateProfile = async (req, res, next) => {
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
     res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // POST /api/users/me/export
-exports.exportData = async (req, res, next) => {
-  try {
+exports.exportData = asyncHandler(async (req, res, next) => {
+
     const userId = req.user.id;
 
     const [user, goals, habits, memories, plans, reports, chats] = await Promise.all([
@@ -84,14 +81,12 @@ exports.exportData = async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="ai-lifeos-export-${Date.now()}.json"`);
     res.setHeader('Content-Type', 'application/json');
     res.status(200).json(exportPayload);
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // DELETE /api/users/me
-exports.deleteAccount = async (req, res, next) => {
-  try {
+exports.deleteAccount = asyncHandler(async (req, res, next) => {
+
     const userId = req.user.id;
 
     // Delete all collections in parallel
@@ -110,7 +105,5 @@ exports.deleteAccount = async (req, res, next) => {
     ]);
 
     res.status(200).json({ success: true, message: 'Account and all associated data deleted.' });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

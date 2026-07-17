@@ -1,8 +1,9 @@
+const asyncHandler = require('express-async-handler');
 const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 const orchestrator = require('../services/llm/orchestrator');
 
-exports.streamChat = async (req, res, next) => {
+exports.streamChat = asyncHandler(async (req, res, next) => {
   try {
     const { message, mode, chatId } = req.query;
     
@@ -85,20 +86,16 @@ exports.streamChat = async (req, res, next) => {
   }
 };
 
-exports.getChatHistory = async (req, res, next) => {
-  try {
+exports.getChatHistory = asyncHandler(async (req, res, next) => {
     const chats = await Chat.find({ userId: req.user.id })
       .sort({ lastMessageAt: -1 })
       .select('title lastMessageAt messageCount');
     
     res.status(200).json({ success: true, data: chats });
-  } catch (err) {
-    next(err);
-  }
-};
+});
 
-exports.getChat = async (req, res, next) => {
-  try {
+exports.getChat = asyncHandler(async (req, res, next) => {
+
     const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
     if (!chat) {
       return res.status(404).json({ success: false, error: 'Chat not found' });
@@ -107,13 +104,11 @@ exports.getChat = async (req, res, next) => {
     const messages = await Message.find({ chatId: chat._id }).sort({ timestamp: 1 });
     
     res.status(200).json({ success: true, data: { chat, messages } });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.deleteChat = async (req, res, next) => {
-  try {
+exports.deleteChat = asyncHandler(async (req, res, next) => {
+
     const chat = await Chat.findOne({ _id: req.params.id, userId: req.user.id });
     if (!chat) {
       return res.status(404).json({ success: false, error: 'Chat not found' });
@@ -123,7 +118,5 @@ exports.deleteChat = async (req, res, next) => {
     await chat.deleteOne();
 
     res.status(200).json({ success: true, data: {} });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

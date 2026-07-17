@@ -4,15 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
 import '../providers/auth_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen>
+class _RegisterScreenState extends ConsumerState<RegisterScreen>
     with SingleTickerProviderStateMixin {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -24,38 +25,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     super.initState();
     _bgAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 10),
     )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _bgAnimController.dispose();
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() async {
+  void _handleRegister() async {
     setState(() => _error = null);
-    final success = await ref.read(authProvider.notifier).login(
+    final success = await ref.read(authProvider.notifier).register(
+      _nameController.text,
       _emailController.text,
       _passwordController.text,
     );
     if (success && mounted) {
       context.go('/chat');
     } else if (mounted) {
-      setState(() => _error = 'Login failed. Please check your credentials.');
+      setState(() => _error = 'Registration failed. Please try again.');
     }
   }
 
-  void _handleGoogleSignIn() async {
+  void _handleGoogleSignUp() async {
     setState(() => _error = null);
     final success = await ref.read(authProvider.notifier).googleSignIn();
     if (success && mounted) {
       context.go('/chat');
     } else if (mounted) {
-      setState(() => _error = 'Google Sign-In failed. Please try again.');
+      setState(() => _error = 'Google Sign-Up failed. Please try again.');
     }
   }
 
@@ -66,35 +69,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Animated gradient background blobs
+          // Animated background blobs
           AnimatedBuilder(
             animation: _bgAnimController,
             builder: (context, _) {
-              final dx = _bgAnimController.value * 40 - 20;
-              final dy = _bgAnimController.value * 25 - 12;
+              final dx = _bgAnimController.value * 50 - 25;
+              final dy = _bgAnimController.value * 30 - 15;
               return Stack(
                 children: [
                   Positioned(
-                    top: -80 + dy,
-                    left: -60 + dx,
+                    top: -60 + dy,
+                    right: -80 + dx,
                     child: Container(
-                      width: 320,
-                      height: 320,
+                      width: 350,
+                      height: 350,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppTheme.indigo500.withOpacity(0.15),
+                        color: AppTheme.indigo500.withOpacity(0.12),
                       ),
                     ),
                   ),
                   Positioned(
-                    bottom: -100 - dy,
-                    right: -80 - dx,
+                    bottom: -120 - dy,
+                    left: -60 - dx,
                     child: Container(
-                      width: 380,
-                      height: 380,
+                      width: 400,
+                      height: 400,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppTheme.rose500.withOpacity(0.08),
+                        color: AppTheme.purple500.withOpacity(0.08),
                       ),
                     ),
                   ),
@@ -136,7 +139,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                   // Title
                   Text(
-                    'Sign In',
+                    'Create Account',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -145,13 +148,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Pick up where you left off',
+                    'Start building your second brain',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppTheme.secondaryText,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
+
+                  // Feature highlights
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _featureChip('🎯 Goal Tracking'),
+                      _featureChip('⚡ AI Chat'),
+                      _featureChip('📊 Habit Analysis'),
+                      _featureChip('🧬 Personal Memory'),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
 
                   // Error banner
                   if (_error != null)
@@ -170,14 +187,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       ),
                     ),
 
-                  // Google Sign-In Button
+                  // Google Sign-Up
                   OutlinedButton.icon(
-                    onPressed: isLoading ? null : _handleGoogleSignIn,
+                    onPressed: isLoading ? null : _handleGoogleSignUp,
                     icon: const Text('G', style: TextStyle(
                       fontSize: 20, fontWeight: FontWeight.bold,
                       color: Colors.white,
                     )),
-                    label: const Text('Sign in with Google',
+                    label: const Text('Sign up with Google',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -197,8 +214,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       Expanded(child: Divider(color: AppTheme.borderColor)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          'Or sign in with email',
+                        child: Text('Or sign up with email',
                           style: TextStyle(color: AppTheme.mutedText, fontSize: 13),
                         ),
                       ),
@@ -207,7 +223,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   const SizedBox(height: 24),
 
-                  // Email Label + Field
+                  // Full Name
+                  const Text('Full Name',
+                    style: TextStyle(color: AppTheme.secondaryText, fontSize: 13, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Your name',
+                      prefixIcon: Icon(Icons.person_outline, size: 18, color: AppTheme.mutedText),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email
                   const Text('Email',
                     style: TextStyle(color: AppTheme.secondaryText, fontSize: 13, fontWeight: FontWeight.w500),
                   ),
@@ -223,7 +254,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   const SizedBox(height: 16),
 
-                  // Password Label + Field
+                  // Password
                   const Text('Password',
                     style: TextStyle(color: AppTheme.secondaryText, fontSize: 13, fontWeight: FontWeight.w500),
                   ),
@@ -231,7 +262,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   TextField(
                     controller: _passwordController,
                     decoration: InputDecoration(
-                      hintText: 'Your password',
+                      hintText: 'Min. 8 characters',
                       prefixIcon: const Icon(Icons.lock_outline, size: 18, color: AppTheme.mutedText),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -247,7 +278,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   const SizedBox(height: 28),
 
-                  // Sign In Button (gradient)
+                  // Get Started Button (gradient)
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -261,7 +292,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : _handleLogin,
+                      onPressed: isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -280,7 +311,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               children: [
                                 Icon(Icons.arrow_forward, size: 20, color: Colors.white),
                                 SizedBox(width: 8),
-                                Text('Sign In',
+                                Text('Get Started',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                                 ),
                               ],
@@ -289,17 +320,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   const SizedBox(height: 28),
 
-                  // Register Link
+                  // Login Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? ",
+                      Text('Already have an account? ',
                         style: TextStyle(color: AppTheme.mutedText, fontSize: 14),
                       ),
                       GestureDetector(
-                        onTap: () => context.push('/register'),
+                        onTap: () => context.pop(),
                         child: const Text(
-                          'Create one free',
+                          'Sign In',
                           style: TextStyle(
                             color: AppTheme.accentIndigo,
                             fontWeight: FontWeight.w600,
@@ -314,6 +345,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _featureChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: AppTheme.glassCard,
+      child: Text(
+        text,
+        style: const TextStyle(color: AppTheme.secondaryText, fontSize: 12),
       ),
     );
   }

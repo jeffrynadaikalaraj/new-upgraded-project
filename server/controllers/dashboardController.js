@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
 const DailyPlan = require('../models/DailyPlan');
@@ -17,8 +18,8 @@ const getPastDate = (daysAgo) => {
   return date.toISOString().split('T')[0];
 };
 
-exports.getDashboardData = async (req, res, next) => {
-  try {
+exports.getDashboardData = asyncHandler(async (req, res, next) => {
+
     const userId = req.user.id;
     const today = getPastDate(0);
 
@@ -169,7 +170,5 @@ exports.getDashboardData = async (req, res, next) => {
       }
     });
 
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

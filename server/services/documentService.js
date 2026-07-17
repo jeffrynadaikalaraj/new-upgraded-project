@@ -1,8 +1,28 @@
 const fs = require('fs');
 const path = require('path');
-const Tesseract = require('tesseract.js');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const config = require('../config/env');
 const groqProvider = require('./llm/groqProvider');
 const { transcribeAudio } = require('./audioService');
+
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+
+function fileToGenerativePart(filePath, mimeType) {
+  return {
+    inlineData: {
+      data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
+      mimeType
+    },
+  };
+}
+
+// Polyfill DOMMatrix and DOMPoint for pdf-parse on newer Node.js versions
+if (typeof global.DOMMatrix === 'undefined') {
+  global.DOMMatrix = class DOMMatrix {};
+}
+if (typeof global.DOMPoint === 'undefined') {
+  global.DOMPoint = class DOMPoint {};
+}
 
 // Supported MIME types
 const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
@@ -25,12 +45,15 @@ const processDocument = async (file) => {
     return text.trim();
   }
 
-  // ── Images — OCR via Tesseract ──────────────────────────────────
+  // ── Images — Gemini Vision ──────────────────────────────────
   if (SUPPORTED_IMAGE_TYPES.includes(mimetype)) {
-    const { data: { text } } = await Tesseract.recognize(filePath, 'eng', {
-      logger: () => {} // silence progress logs
-    });
-    return text.trim();
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = "Analyze this image in deep detail. Extract all text exactly as written (in its original language). Then, provide a deep research summary of what this image contains, its context, and any relevant facts.";
+    const imagePart = fileToGenerativePart(filePath, mimetype);
+    
+    const result = await model.generateContent([prompt, imagePart]);
+    const response = await result.response;
+    return response.text().trim();
   }
 
   // ── PDF — attempt text-layer extraction via pdf-parse

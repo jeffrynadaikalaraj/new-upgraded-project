@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const Habit = require('../models/Habit');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -121,8 +122,8 @@ const enrichWithToday = (habit) => {
 // @desc    Create a habit
 // @route   POST /api/habits
 // @access  Private
-exports.createHabit = async (req, res, next) => {
-  try {
+exports.createHabit = asyncHandler(async (req, res, next) => {
+
     const { title, description, frequency, customDays, category, icon, color, remindAt } = req.body;
 
     const habit = await Habit.create({
@@ -138,16 +139,14 @@ exports.createHabit = async (req, res, next) => {
     });
 
     res.status(201).json({ success: true, data: enrichWithToday(habit) });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get all habits for the authenticated user
 // @route   GET /api/habits
 // @access  Private
-exports.getHabits = async (req, res, next) => {
-  try {
+exports.getHabits = asyncHandler(async (req, res, next) => {
+
     const { archived } = req.query;
     const filter = { userId: req.user.id };
 
@@ -162,31 +161,27 @@ exports.getHabits = async (req, res, next) => {
     const enriched = habits.map(enrichWithToday);
 
     res.status(200).json({ success: true, count: enriched.length, data: enriched });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get single habit
 // @route   GET /api/habits/:id
 // @access  Private
-exports.getHabit = async (req, res, next) => {
-  try {
+exports.getHabit = asyncHandler(async (req, res, next) => {
+
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user.id });
     if (!habit) {
       return res.status(404).json({ success: false, error: 'Habit not found' });
     }
     res.status(200).json({ success: true, data: enrichWithToday(habit) });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Update habit details
 // @route   PUT /api/habits/:id
 // @access  Private
-exports.updateHabit = async (req, res, next) => {
-  try {
+exports.updateHabit = asyncHandler(async (req, res, next) => {
+
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user.id });
     if (!habit) {
       return res.status(404).json({ success: false, error: 'Habit not found' });
@@ -206,17 +201,15 @@ exports.updateHabit = async (req, res, next) => {
 
     await habit.save();
     res.status(200).json({ success: true, data: enrichWithToday(habit) });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Archive or delete a habit
 // @route   DELETE /api/habits/:id
 // @access  Private
 // Query param: ?permanent=true to hard-delete; default = archive
-exports.deleteHabit = async (req, res, next) => {
-  try {
+exports.deleteHabit = asyncHandler(async (req, res, next) => {
+
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user.id });
     if (!habit) {
       return res.status(404).json({ success: false, error: 'Habit not found' });
@@ -231,16 +224,14 @@ exports.deleteHabit = async (req, res, next) => {
     habit.isArchived = true;
     await habit.save();
     res.status(200).json({ success: true, data: habit, message: 'Habit archived' });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Mark today as completed
 // @route   POST /api/habits/:id/complete
 // @access  Private
-exports.completeHabit = async (req, res, next) => {
-  try {
+exports.completeHabit = asyncHandler(async (req, res, next) => {
+
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user.id });
     if (!habit) {
       return res.status(404).json({ success: false, error: 'Habit not found' });
@@ -276,16 +267,14 @@ exports.completeHabit = async (req, res, next) => {
 
     await habit.save();
     res.status(200).json({ success: true, data: enrichWithToday(habit), message: 'Habit completed for today!' });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Undo today's completion
 // @route   POST /api/habits/:id/uncomplete
 // @access  Private
-exports.uncompleteHabit = async (req, res, next) => {
-  try {
+exports.uncompleteHabit = asyncHandler(async (req, res, next) => {
+
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user.id });
     if (!habit) {
       return res.status(404).json({ success: false, error: 'Habit not found' });
@@ -314,16 +303,14 @@ exports.uncompleteHabit = async (req, res, next) => {
 
     await habit.save();
     res.status(200).json({ success: true, data: enrichWithToday(habit), message: 'Completion undone' });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get habit stats
 // @route   GET /api/habits/:id/stats
 // @access  Private
-exports.getHabitStats = async (req, res, next) => {
-  try {
+exports.getHabitStats = asyncHandler(async (req, res, next) => {
+
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user.id });
     if (!habit) {
       return res.status(404).json({ success: false, error: 'Habit not found' });
@@ -385,7 +372,5 @@ exports.getHabitStats = async (req, res, next) => {
         heatmapLog,
       },
     });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

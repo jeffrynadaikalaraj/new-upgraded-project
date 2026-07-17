@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const DailyPlan = require('../models/DailyPlan');
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
@@ -13,8 +14,8 @@ const calculatePlanScore = (blocks) => {
 // @desc    Generate daily plan
 // @route   POST /api/planner/generate
 // @access  Private
-exports.generatePlan = async (req, res, next) => {
-  try {
+exports.generatePlan = asyncHandler(async (req, res, next) => {
+
     const { date, customPrompt, wakeTime, sleepTime, priorityLevel } = req.body;
     const targetDate = date || new Date().toISOString().split('T')[0];
 
@@ -120,16 +121,14 @@ Return JSON array only.`;
     );
 
     res.status(200).json({ success: true, data: plan });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get plan for a specific date
 // @route   GET /api/planner/:date
 // @access  Private
-exports.getPlanByDate = async (req, res, next) => {
-  try {
+exports.getPlanByDate = asyncHandler(async (req, res, next) => {
+
     const { date } = req.params;
     const plan = await DailyPlan.findOne({ userId: req.user.id, date });
     
@@ -138,31 +137,27 @@ exports.getPlanByDate = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, data: plan });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get today's plan
 // @route   GET /api/planner/today
 // @access  Private
-exports.getTodayPlan = async (req, res, next) => {
-  try {
+exports.getTodayPlan = asyncHandler(async (req, res, next) => {
+
     const today = new Date().toISOString().split('T')[0];
     const plan = await DailyPlan.findOne({ userId: req.user.id, date: today });
     
     // Return empty state if not found instead of 404, frontend can handle generation
     res.status(200).json({ success: true, data: plan || null });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Update block completion
 // @route   PUT /api/planner/:date/blocks/:blockId
 // @access  Private
-exports.updateBlock = async (req, res, next) => {
-  try {
+exports.updateBlock = asyncHandler(async (req, res, next) => {
+
     const { date, blockId } = req.params;
     const { completed } = req.body;
 
@@ -186,7 +181,5 @@ exports.updateBlock = async (req, res, next) => {
     await plan.save();
 
     res.status(200).json({ success: true, data: plan });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

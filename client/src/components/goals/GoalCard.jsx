@@ -134,7 +134,7 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
 
   return (
     <div 
-      className={`bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-5 hover:border-slate-600 transition-all duration-300 shadow-xl ${expanded ? 'ring-1 ring-indigo-500/30' : ''}`}
+      className={`premium-card-hover p-5 transition-all duration-500 ${expanded ? 'ring-1 ring-brand-500/25' : ''}`}
     >
       <div 
         className="cursor-pointer flex flex-col gap-4"
@@ -183,7 +183,7 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
             </span>
             <span className="font-medium text-slate-200">{goal.progress}%</span>
           </div>
-          <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+          <div className="h-2 w-full bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.04]">
             <div 
               className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-1000 ease-out relative"
               style={{ width: `${goal.progress}%` }}
@@ -206,9 +206,9 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="mt-5 pt-5 border-t border-slate-700/50 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="mt-5 pt-5 border-t border-white/[0.06] animate-in fade-in slide-in-from-top-4 duration-300">
           {goal.description && (
-            <p className="text-sm text-slate-300 mb-5 leading-relaxed bg-slate-900/30 p-3 rounded-lg border border-slate-800/50">
+            <p className="text-sm text-slate-300 mb-5 leading-relaxed bg-white/[0.02] p-3 rounded-xl border border-white/[0.04]">
               {goal.description}
             </p>
           )}
@@ -247,7 +247,7 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
                         </span>
                         {hasNumericTarget && (
                           <div className="mt-1.5 flex items-center gap-2">
-                            <div className="flex-1 h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                            <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.03]">
                               <div
                                 className={`h-full rounded-full transition-all duration-700 ${
                                   milestone.completed
@@ -270,7 +270,7 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
             )}
           </div>
 
-          <div className="mb-5 bg-slate-900/40 rounded-xl border border-slate-700/50 p-4">
+          <div className="mb-5 bg-white/[0.02] rounded-xl border border-white/[0.05] p-4">
             <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Zap size={14} className="text-indigo-400" /> Activity Log
             </h4>
@@ -314,7 +314,7 @@ const GoalCard = ({ goal, onUpdateMilestone, onClickEdit, onGenerateAiSuggestion
             />
           </div>
 
-          <div className="bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 relative overflow-hidden">
+          <div className="bg-brand-500/[0.06] border border-brand-500/15 rounded-xl p-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full" />
             <h4 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-2 relative z-10">
               <Zap size={14} className="animate-pulse" /> AI Suggestions

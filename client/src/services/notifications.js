@@ -40,7 +40,8 @@ class NotificationService {
     // Registration success — you get the FCM token here
     PushNotifications.addListener('registration', (token) => {
       console.log('[Notifications] FCM Token:', token.value);
-      // TODO: Send this token to your backend so you can push to this device
+      // NOTE: FCM integration is currently disabled.
+      // Once enabled, send this token to your backend so you can push to this device.
       // e.g., api.post('/users/fcm-token', { token: token.value });
     });
 

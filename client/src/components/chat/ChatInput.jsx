@@ -92,27 +92,27 @@ const ChatInput = ({ onSendMessage, disabled }) => {
     <div className="relative w-full max-w-4xl mx-auto flex flex-col gap-2 p-4">
       {/* Upload Progress */}
       {isUploading && (
-        <div className="bg-slate-800/90 backdrop-blur-sm border border-slate-700/50 rounded-xl p-3 shadow-lg absolute -top-12 left-4 right-4 z-20 flex items-center gap-3">
-          <Loader2 className="w-4 h-4 animate-spin text-indigo-400 flex-shrink-0" />
-          <div className="text-xs font-medium text-slate-300 w-24">Uploading {uploadProgress}%</div>
-          <div className="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${uploadProgress}%` }} />
+        <div className="premium-card p-3 absolute -top-12 left-4 right-4 z-20 flex items-center gap-3">
+          <Loader2 className="w-4 h-4 animate-spin text-brand-400 flex-shrink-0" />
+          <div className="text-xs font-semibold text-slate-300 w-24">Uploading {uploadProgress}%</div>
+          <div className="flex-1 bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
+            <div className="bg-brand-500 h-1.5 rounded-full transition-all duration-300 ease-out shimmer-effect" style={{ width: `${uploadProgress}%` }} />
           </div>
         </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-500/90 backdrop-blur-sm border border-red-500/50 rounded-xl p-3 shadow-lg absolute -top-12 left-4 right-4 z-20 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-white text-xs font-medium">
-            <span className="font-bold text-red-200">Error:</span> {error}
+        <div className="bg-rose-500/15 backdrop-blur-sm border border-rose-500/25 rounded-xl p-3 shadow-lg absolute -top-12 left-4 right-4 z-20 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-rose-300 text-xs font-semibold">
+            <span className="font-bold text-rose-200">Error:</span> {error}
           </div>
-          <button onClick={clearError} type="button" className="text-red-200 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+          <button onClick={clearError} type="button" className="text-rose-300 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="relative w-full flex items-end gap-2">
-        <div className="relative flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+        <div className="relative flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/25 focus-within:border-brand-500/30 hover:border-white/[0.12] transition-all duration-300 shadow-inner-glow">
           <textarea
             ref={textareaRef}
             value={message}
@@ -120,7 +120,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
             onKeyDown={handleKeyDown}
             onInput={handleInput}
             placeholder="Type your message here..."
-            className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-400 p-4 pr-[120px] resize-none focus:outline-none scrollbar-thin"
+            className="w-full max-h-[200px] bg-transparent text-slate-100 placeholder-slate-500 p-4 pr-[120px] resize-none focus:outline-none scrollbar-thin"
             rows={1}
             disabled={disabled}
             autoFocus
@@ -138,7 +138,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploading}
-            className="absolute right-[88px] bottom-2.5 p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg z-10"
+            className="absolute right-[88px] bottom-2.5 p-2 text-slate-400 hover:text-brand-400 hover:bg-brand-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 rounded-lg z-10"
             title="Upload document"
           >
             <Paperclip className="w-5 h-5" />
@@ -149,7 +149,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
           <button
             type="submit"
             disabled={!message.trim() || disabled}
-            className="absolute right-2 bottom-2.5 p-2 text-indigo-400 hover:text-indigo-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors rounded-lg z-10"
+            className="absolute right-2 bottom-2.5 p-2 text-brand-400 hover:text-brand-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-all duration-300 rounded-lg z-10 hover:bg-brand-500/10"
           >
             {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>

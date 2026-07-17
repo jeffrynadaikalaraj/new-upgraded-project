@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/theme.dart';
 
 class PulsingAvatar extends StatefulWidget {
   final bool isThinking;
@@ -44,29 +45,28 @@ class _PulsingAvatarState extends State<PulsingAvatar> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    // Determine color based on state
-    Color accentColor = const Color(0xFF818cf8); // default indigo
+    Color accentColor = AppTheme.indigo500;
     if (widget.isThinking) {
-      accentColor = const Color(0xFFf472b6); // pink when thinking
+      accentColor = AppTheme.pink400;
     } else if (widget.isSpeaking) {
-      accentColor = const Color(0xFF34d399); // green when speaking
+      accentColor = AppTheme.emerald400;
     }
 
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Container(
-          width: 80,
-          height: 80,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF1e293b),
+            color: AppTheme.cardColor,
             boxShadow: [
               if (widget.isThinking || widget.isSpeaking)
                 BoxShadow(
                   color: accentColor.withOpacity(_glowAnimation.value),
-                  blurRadius: 30 * _scaleAnimation.value,
-                  spreadRadius: 10 * _scaleAnimation.value,
+                  blurRadius: 15 * _scaleAnimation.value,
+                  spreadRadius: 4 * _scaleAnimation.value,
                 ),
             ],
             border: Border.all(
@@ -78,7 +78,7 @@ class _PulsingAvatarState extends State<PulsingAvatar> with SingleTickerProvider
             scale: widget.isSpeaking ? _scaleAnimation.value : 1.0,
             child: Icon(
               Icons.psychology,
-              size: 40,
+              size: 26,
               color: accentColor,
             ),
           ),

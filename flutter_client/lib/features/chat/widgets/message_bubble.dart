@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../../../app/theme.dart';
 import '../models/message.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -15,40 +16,72 @@ class MessageBubble extends StatelessWidget {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
+        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: isUser ? const Color(0xFF818cf8) : (isSystem ? Colors.redAccent.withOpacity(0.2) : const Color(0xFF1e293b)),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: isUser ? const Radius.circular(16) : const Radius.circular(4),
-            bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(16),
-          ),
-          border: isUser ? null : Border.all(color: isSystem ? Colors.red : const Color(0xFF334155)),
-        ),
+        decoration: isUser
+            ? BoxDecoration(
+                gradient: AppTheme.accentGradient,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(4),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.accentIndigo.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              )
+            : BoxDecoration(
+                color: isSystem ? AppTheme.rose500.withOpacity(0.1) : AppTheme.cardColorTranslucent,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(4),
+                  bottomRight: Radius.circular(16),
+                ),
+                border: Border.all(
+                  color: isSystem ? AppTheme.rose500.withOpacity(0.3) : AppTheme.borderColorSubtle,
+                ),
+                boxShadow: isSystem ? null : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.85,
         ),
         child: isUser
             ? Text(
                 message.content,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
               )
             : MarkdownBody(
                 data: message.content,
                 selectable: true,
                 styleSheet: MarkdownStyleSheet(
-                  p: const TextStyle(color: Color(0xFFf1f5f9), fontSize: 16),
+                  p: const TextStyle(color: AppTheme.primaryText, fontSize: 15, height: 1.5),
+                  h1: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  h2: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  h3: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  listBullet: const TextStyle(color: AppTheme.accentIndigo),
                   code: const TextStyle(
-                    backgroundColor: Color(0xFF0f172a),
-                    color: Color(0xFF818cf8),
+                    backgroundColor: AppTheme.scaffoldBackground,
+                    color: AppTheme.accentIndigo,
                     fontFamily: 'monospace',
                   ),
                   codeblockDecoration: BoxDecoration(
-                    color: const Color(0xFF0f172a),
+                    color: AppTheme.scaffoldBackground,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.borderColor),
                   ),
+                  codeblockPadding: const EdgeInsets.all(12),
                 ),
               ),
       ),

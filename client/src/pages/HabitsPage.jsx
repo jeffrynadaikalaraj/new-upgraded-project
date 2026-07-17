@@ -5,16 +5,17 @@ import HabitCard from '../components/habits/HabitCard';
 import HabitModal from '../components/habits/HabitModal';
 import Button from '../components/ui/Button';
 import { PageSkeleton } from '../components/common/LoadingSkeleton';
+import { motion } from 'framer-motion';
 
 // ── Quick stats bar ───────────────────────────────────────────────────────────
 const StatPill = ({ icon: Icon, label, value, color }) => (
-  <div className="flex items-center gap-3 bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-2xl px-5 py-3">
-    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
-      <Icon size={18} />
+  <div className="premium-card-hover flex items-center gap-3 px-5 py-3.5">
+    <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-inner-glow ${color}`}>
+      <Icon size={16} />
     </div>
     <div>
-      <p className="text-xl font-bold text-slate-100 leading-none">{value}</p>
-      <p className="text-xs text-slate-500 mt-0.5">{label}</p>
+      <p className="text-xl font-bold text-white leading-none tracking-tight">{value}</p>
+      <p className="text-2xs text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">{label}</p>
     </div>
   </div>
 );
@@ -92,51 +93,49 @@ const HabitsPage = () => {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-slate-900 w-full relative">
-      {/* Background glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-500/8 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/6 rounded-full blur-3xl pointer-events-none" />
+    <div className="page-container">
+      {/* Ambient Background Orbs */}
+      <div className="ambient-orb-primary w-[500px] h-[500px] -top-40 -right-40 bg-violet-500/[0.06]" />
+      <div className="ambient-orb-secondary w-[400px] h-[400px] -bottom-40 -left-40 bg-emerald-500/[0.04]" />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between p-8 pb-4 relative z-10">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Activity className="text-violet-400" size={32} />
+          <h1 className="page-title">
+            <div className="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
+              <Activity className="text-violet-400" size={22} />
+            </div>
             My Habits
           </h1>
-          <p className="text-slate-400 mt-1.5 text-sm">
+          <p className="page-subtitle">
             Build consistency one day at a time.
           </p>
         </div>
-        <Button onClick={handleOpenNew} className="shadow-lg shadow-violet-500/20">
+        <Button onClick={handleOpenNew} className="shadow-glow-sm">
           <Plus size={18} /> New Habit
         </Button>
       </div>
 
       {/* ── Quick stats ─────────────────────────────────────────────────────── */}
       {totalHabits > 0 && (
-        <div className="px-8 pb-4 relative z-10">
+        <div className="px-6 md:px-8 pb-4 relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <StatPill icon={Activity}    label="Total Habits"     value={totalHabits}     color="bg-violet-500/20 text-violet-400" />
-            <StatPill icon={CheckCircle2} label="Done Today"      value={`${completedToday}/${totalHabits}`} color="bg-emerald-500/20 text-emerald-400" />
-            <StatPill icon={Flame}       label="On a Streak"      value={onStreakCount}    color="bg-orange-500/20 text-orange-400" />
-            <StatPill icon={TrendingUp}  label="Best Streak Ever" value={`${bestStreak}d`} color="bg-blue-500/20 text-blue-400" />
+            <StatPill icon={Activity}    label="Total Habits"     value={totalHabits}     color="bg-violet-500/15 text-violet-400 border-violet-500/25" />
+            <StatPill icon={CheckCircle2} label="Done Today"      value={`${completedToday}/${totalHabits}`} color="bg-emerald-500/15 text-emerald-400 border-emerald-500/25" />
+            <StatPill icon={Flame}       label="On a Streak"      value={onStreakCount}    color="bg-orange-500/15 text-orange-400 border-orange-500/25" />
+            <StatPill icon={TrendingUp}  label="Best Streak Ever" value={`${bestStreak}d`} color="bg-blue-500/15 text-blue-400 border-blue-500/25" />
           </div>
         </div>
       )}
 
       {/* ── Filters ──────────────────────────────────────────────────────────── */}
-      <div className="px-8 pb-5 pt-1 flex items-center gap-3 relative z-10 border-b border-slate-800/80 overflow-x-auto">
-        <div className="flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50 backdrop-blur-md gap-0.5 flex-shrink-0">
+      <div className="filter-bar">
+        <div className="filter-pill-group">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize whitespace-nowrap ${
-                filterCategory === cat
-                  ? 'bg-slate-700 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-300'
-              }`}
+              className={filterCategory === cat ? 'filter-pill-active' : 'filter-pill-inactive'}
             >
               {cat}
             </button>
@@ -145,11 +144,11 @@ const HabitsPage = () => {
       </div>
 
       {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
+      <div className="page-content">
 
         {/* Error banner */}
         {error && (
-          <div className="mb-6 flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl px-4 py-3 text-sm">
+          <div className="mb-6 flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl px-4 py-3 text-sm font-medium">
             <span className="flex-1">{error}</span>
             <button onClick={clearError} className="text-rose-500 hover:text-rose-300 transition-colors font-bold">✕</button>
           </div>
@@ -160,15 +159,15 @@ const HabitsPage = () => {
           <PageSkeleton title="My Habits" showHeader={false} />
         ) : filteredHabits.length === 0 ? (
           /* Empty state */
-          <div className="flex flex-col items-center justify-center h-full max-w-sm mx-auto text-center">
-            <div className="w-24 h-24 bg-violet-500/10 rounded-full flex items-center justify-center mb-6 relative">
-              <Activity size={44} className="text-violet-400 opacity-50" />
-              <div className="absolute -right-1 -top-1 w-7 h-7 bg-orange-500/20 rounded-full flex items-center justify-center text-base">🔥</div>
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Activity size={40} className="text-violet-400 opacity-60" />
+              <div className="absolute -right-1 -top-1 w-8 h-8 bg-orange-500/15 border border-orange-500/20 rounded-full flex items-center justify-center text-base">🔥</div>
             </div>
-            <h3 className="text-xl font-bold text-slate-200 mb-2">
+            <h3 className="empty-state-title">
               {filterCategory === 'all' ? '🔥 No habits created' : `No ${filterCategory} habits`}
             </h3>
-            <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+            <p className="empty-state-description">
               {filterCategory === 'all'
                 ? 'Small daily actions create massive results.'
                 : `Try another category or create your first ${filterCategory} habit.`}
@@ -206,10 +205,14 @@ const HabitsPage = () => {
 
       {/* Archive confirm */}
       {showArchiveConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="premium-card p-6 w-full max-w-sm shadow-2xl"
+          >
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-amber-500/15 border border-amber-500/20 rounded-xl flex items-center justify-center">
                 <Archive size={20} className="text-amber-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-100">Archive Habit?</h3>
@@ -221,12 +224,12 @@ const HabitsPage = () => {
               <Button variant="secondary" className="flex-1" onClick={() => setShowArchiveConfirm(null)}>Cancel</Button>
               <button
                 onClick={confirmArchive}
-                className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors text-sm shadow-md shadow-amber-500/20"
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-300 text-sm shadow-md shadow-amber-500/20 active:scale-[0.97]"
               >
                 Archive
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

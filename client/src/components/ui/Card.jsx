@@ -1,10 +1,10 @@
 import React from 'react';
 
-const Card = ({ children, className = '', gradientBorder = false, hover = false }) => {
+const Card = ({ children, className = '', gradientBorder = false, hover = false, glow = false }) => {
   if (gradientBorder) {
     return (
-      <div className={`relative p-[1px] rounded-xl bg-gradient overflow-hidden ${hover ? 'transition-transform duration-300 hover:-translate-y-1' : ''}`}>
-        <div className={`glass rounded-xl h-full w-full ${className}`}>
+      <div className={`gradient-border-card ${hover ? 'transition-transform duration-500 hover:-translate-y-1' : ''}`}>
+        <div className={`p-[1px] h-full w-full ${className}`}>
           {children}
         </div>
       </div>
@@ -12,7 +12,7 @@ const Card = ({ children, className = '', gradientBorder = false, hover = false 
   }
 
   return (
-    <div className={`glass rounded-xl ${hover ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-500/30' : ''} ${className}`}>
+    <div className={`${hover ? 'premium-card-hover' : 'premium-card'} ${glow ? 'shadow-glow-sm hover:shadow-glow-md' : ''} ${className}`}>
       {children}
     </div>
   );

@@ -56,41 +56,46 @@ const Sidebar = () => {
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div 
-          className="md:hidden fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={toggleSidebar}
         />
       )}
       
       <aside
-        className={`absolute md:relative z-50 flex flex-col h-screen bg-slate-900 border-r border-slate-800 transition-all duration-300 ease-in-out flex-shrink-0 print:hidden ${
+        className={`absolute md:relative z-50 flex flex-col h-screen border-r border-white/[0.04] transition-all duration-300 ease-in-out flex-shrink-0 print:hidden ${
           sidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full md:translate-x-0 md:w-16'
         }`}
+        style={{
+          background: 'linear-gradient(180deg, rgba(10,15,30,0.97) 0%, rgba(15,23,42,0.95) 100%)',
+          backdropFilter: 'blur(24px)',
+        }}
       >
         {/* Toggle button */}
         <button
           onClick={toggleSidebar}
-          className="hidden md:flex absolute -right-3.5 top-8 z-20 w-7 h-7 rounded-full bg-slate-700 border border-slate-600 items-center justify-center text-slate-400 hover:text-white hover:bg-slate-600 transition-colors shadow-md"
+          className="hidden md:flex absolute -right-3.5 top-8 z-20 w-7 h-7 rounded-full bg-slate-800/90 border border-white/[0.08] items-center justify-center text-slate-400 hover:text-white hover:bg-brand-600/80 hover:border-brand-500/30 transition-all shadow-lg backdrop-blur-sm"
         >
           {sidebarOpen ? <ChevronLeft size={14}/> : <ChevronRight size={14}/>}
         </button>
 
-
       {/* Logo */}
-      <div className={`flex items-center gap-3 p-4 border-b border-slate-800 h-16 ${!sidebarOpen && 'justify-center'}`}>
-        <div className="w-9 h-9 rounded-xl bg-gradient flex-shrink-0 flex items-center justify-center shadow-md shadow-indigo-500/20">
+      <div className={`flex items-center gap-3 p-4 border-b border-white/[0.04] h-16 ${!sidebarOpen && 'justify-center'}`}>
+        <div className="w-9 h-9 rounded-xl bg-gradient flex-shrink-0 flex items-center justify-center shadow-glow-sm">
           <span className="text-lg">🧠</span>
         </div>
         {sidebarOpen && (
-          <span className="font-bold text-white text-lg truncate">AI LifeOS</span>
+          <span className="font-bold text-white text-lg tracking-tight">AI LifeOS</span>
         )}
       </div>
 
       {/* New Chat Button */}
-      <div className={`p-3 border-b border-slate-800 ${!sidebarOpen && 'flex justify-center'}`}>
+      <div className={`p-3 border-b border-white/[0.04] ${!sidebarOpen && 'flex justify-center'}`}>
         <button
           onClick={() => { newChat(); navigate('/chat'); }}
-          className={`flex items-center gap-2 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors text-sm font-medium ${
-            sidebarOpen ? 'w-full px-3 py-2' : 'p-2'
+          className={`flex items-center gap-2 text-brand-400 hover:text-brand-300 rounded-xl transition-all text-sm font-semibold ${
+            sidebarOpen 
+              ? 'w-full px-3 py-2.5 hover:bg-brand-500/10 border border-transparent hover:border-brand-500/20' 
+              : 'p-2 hover:bg-brand-500/10'
           }`}
         >
           <PlusCircle size={18} className="flex-shrink-0"/>
@@ -99,19 +104,19 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="p-2 space-y-0.5 border-b border-slate-800">
+      <nav className="p-2 space-y-0.5 border-b border-white/[0.04]">
         {navItems.map(({ path, label, icon: Icon }) => (
           <Link
             key={path}
             to={path}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium group ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium group ${
               isActive(path)
-                ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                ? 'bg-brand-600/15 text-brand-400 border border-brand-500/20 shadow-glow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] border border-transparent'
             } ${!sidebarOpen && 'justify-center'}`}
             title={!sidebarOpen ? label : ''}
           >
-            <Icon size={18} className="flex-shrink-0"/>
+            <Icon size={18} className={`flex-shrink-0 transition-colors duration-300 ${isActive(path) ? 'text-brand-400' : 'group-hover:text-brand-400/60'}`}/>
             {sidebarOpen && <span className="truncate">{label}</span>}
           </Link>
         ))}
@@ -120,17 +125,17 @@ const Sidebar = () => {
       {/* Chat History */}
       {sidebarOpen && (
         <div className="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-0.5">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold px-2 mb-2 pt-1">History</p>
+          <p className="text-2xs text-slate-500 uppercase tracking-widest font-bold px-3 mb-2 pt-2">History</p>
           {chatHistory.length === 0 && (
             <p className="text-xs text-slate-600 px-3 py-2">No conversations yet</p>
           )}
           {chatHistory.map(chat => (
             <div
               key={chat._id}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all text-xs ${
+              className={`group flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 text-xs ${
                 activeChat?._id === chat._id
-                  ? 'bg-slate-700 text-slate-100'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-white/[0.06] text-slate-100 border border-white/[0.06]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] border border-transparent'
               }`}
               onClick={() => handleSelectChat(chat)}
             >
@@ -148,20 +153,20 @@ const Sidebar = () => {
       {!sidebarOpen && <div className="flex-1"/>}
 
       {/* User Profile */}
-      <div className={`p-3 border-t border-slate-800 flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}>
-        <div className="w-8 h-8 rounded-full bg-gradient flex-shrink-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+      <div className={`p-3 border-t border-white/[0.04] flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}>
+        <div className="w-8 h-8 rounded-lg bg-gradient flex-shrink-0 flex items-center justify-center text-sm font-bold text-white shadow-sm">
           {user?.name?.charAt(0)?.toUpperCase() || 'U'}
         </div>
         {sidebarOpen && (
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-slate-200 truncate">{user?.name || 'User'}</p>
-            <p className="text-[10px] text-slate-500 truncate">{user?.email || ''}</p>
+            <p className="text-xs font-semibold text-slate-200 truncate">{user?.name || 'User'}</p>
+            <p className="text-2xs text-slate-500 truncate">{user?.email || ''}</p>
           </div>
         )}
         <button
           onClick={handleLogout}
           title="Logout"
-          className="text-slate-500 hover:text-rose-400 transition-colors flex-shrink-0"
+          className="text-slate-500 hover:text-rose-400 transition-colors duration-300 flex-shrink-0"
         >
           <LogOut size={16}/>
         </button>

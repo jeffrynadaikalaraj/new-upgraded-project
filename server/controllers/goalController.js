@@ -1,51 +1,46 @@
+const asyncHandler = require('express-async-handler');
 const Goal = require('../models/Goal');
 const groqProvider = require('../services/llm/groqProvider');
 
 // @desc    Get all goals for user
 // @route   GET /api/goals
 // @access  Private
-exports.getGoals = async (req, res, next) => {
-  try {
+exports.getGoals = asyncHandler(async (req, res, next) => {
+
     const goals = await Goal.find({ userId: req.user.id }).sort('-createdAt');
     res.status(200).json({ success: true, count: goals.length, data: goals });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get single goal
 // @route   GET /api/goals/:id
 // @access  Private
-exports.getGoal = async (req, res, next) => {
-  try {
+exports.getGoal = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
     }
     res.status(200).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Create goal
 // @route   POST /api/goals
 // @access  Private
-exports.createGoal = async (req, res, next) => {
-  try {
+exports.createGoal = asyncHandler(async (req, res, next) => {
+
     req.body.userId = req.user.id;
     const goal = await Goal.create(req.body);
     res.status(201).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Update goal
 // @route   PUT /api/goals/:id
 // @access  Private
-exports.updateGoal = async (req, res, next) => {
-  try {
+exports.updateGoal = asyncHandler(async (req, res, next) => {
+
     let goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
@@ -62,32 +57,28 @@ exports.updateGoal = async (req, res, next) => {
     });
 
     res.status(200).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Delete goal
 // @route   DELETE /api/goals/:id
 // @access  Private
-exports.deleteGoal = async (req, res, next) => {
-  try {
+exports.deleteGoal = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
     }
     await goal.deleteOne();
     res.status(200).json({ success: true, data: {} });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Add milestone to goal
 // @route   POST /api/goals/:id/milestones
 // @access  Private
-exports.addMilestone = async (req, res, next) => {
-  try {
+exports.addMilestone = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
@@ -97,16 +88,14 @@ exports.addMilestone = async (req, res, next) => {
     await goal.save();
     
     res.status(200).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Update milestone
 // @route   PUT /api/goals/:id/milestones/:milestoneId
 // @access  Private
-exports.updateMilestone = async (req, res, next) => {
-  try {
+exports.updateMilestone = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
@@ -141,16 +130,14 @@ exports.updateMilestone = async (req, res, next) => {
 
     await goal.save();
     res.status(200).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Generate AI suggestions for a goal
 // @route   POST /api/goals/:id/ai-suggest
 // @access  Private
-exports.generateAiSuggestions = async (req, res, next) => {
-  try {
+exports.generateAiSuggestions = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
@@ -198,18 +185,16 @@ Priority: ${goal.priority}`;
     await goal.save();
 
     res.status(200).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 
 
 // @desc    Log activity for a goal
 // @route   POST /api/goals/:id/activity
 // @access  Private
-exports.logActivity = async (req, res, next) => {
-  try {
+exports.logActivity = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
@@ -278,16 +263,14 @@ Provide a very brief (1-2 sentences max), highly encouraging feedback message th
 
 
     res.status(200).json({ success: true, data: goal });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // @desc    Get activity log for a goal
 // @route   GET /api/goals/:id/activity
 // @access  Private
-exports.getActivity = async (req, res, next) => {
-  try {
+exports.getActivity = asyncHandler(async (req, res, next) => {
+
     const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
     if (!goal) {
       return res.status(404).json({ success: false, error: 'Goal not found' });
@@ -297,7 +280,5 @@ exports.getActivity = async (req, res, next) => {
     const sortedActivity = goal.activityLog.sort((a, b) => b.date - a.date);
 
     res.status(200).json({ success: true, data: sortedActivity });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../stores/authStore';
+import { motion } from 'framer-motion';
 
 const RegisterPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -26,41 +27,72 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="min-h-screen flex relative overflow-hidden" style={{ backgroundColor: '#0a0f1e' }}>
+      {/* Ambient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-purple-500/[0.06] rounded-full blur-[120px] animate-float" />
+        <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-brand-500/[0.05] rounded-full blur-[100px] animate-float-slow" />
+        <div className="absolute top-1/3 left-0 w-[400px] h-[400px] bg-cyan-500/[0.04] rounded-full blur-[80px] animate-float-delayed" />
+      </div>
+
       {/* Left: Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 items-center justify-center p-12">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-600/20 via-transparent to-transparent"></div>
-        <div className="relative z-10 max-w-md text-center">
-          <div className="w-20 h-20 rounded-2xl bg-gradient mx-auto mb-8 flex items-center justify-center shadow-2xl shadow-indigo-500/40">
+      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-12">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-dot-pattern bg-dot opacity-30" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-md text-center"
+        >
+          <div className="w-20 h-20 rounded-2xl bg-gradient mx-auto mb-8 flex items-center justify-center shadow-glow-lg">
             <span className="text-4xl">🧠</span>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-4">AI LifeOS</h1>
-          <p className="text-slate-300 text-lg leading-relaxed mb-8">
+          <h1 className="text-4xl font-bold text-white mb-4 tracking-tight">AI LifeOS</h1>
+          <p className="text-slate-400 text-lg leading-relaxed mb-10">
             Your personal AI operating system for goals, habits, memory, and life management.
           </p>
-          <div className="grid grid-cols-2 gap-4 text-sm text-left">
-            {['🎯 Goal Tracking', '⚡ AI Chat', '📊 Habit Analysis', '🧬 Personal Memory'].map(item => (
-              <div key={item} className="glass rounded-xl p-4 text-slate-300">{item}</div>
+          <div className="grid grid-cols-2 gap-3 text-sm text-left">
+            {[
+              { emoji: '🎯', text: 'Goal Tracking' },
+              { emoji: '⚡', text: 'AI Chat' },
+              { emoji: '📊', text: 'Habit Analysis' },
+              { emoji: '🧬', text: 'Personal Memory' }
+            ].map(item => (
+              <div key={item.text} className="premium-card rounded-xl p-4 text-slate-300 font-medium flex items-center gap-3">
+                <span className="text-lg">{item.emoji}</span>
+                {item.text}
+              </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Right: Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md"
+        >
           <div className="text-center mb-10">
-            <div className="w-14 h-14 rounded-xl bg-gradient mx-auto mb-4 flex items-center justify-center shadow-lg shadow-indigo-500/30 lg:hidden">
+            <div className="w-14 h-14 rounded-xl bg-gradient mx-auto mb-4 flex items-center justify-center shadow-glow-md lg:hidden">
               <span className="text-2xl">🧠</span>
             </div>
-            <h2 className="text-3xl font-bold text-white">Create Account</h2>
-            <p className="text-slate-400 mt-2">Start building your second brain</p>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Create Account</h2>
+            <p className="text-slate-400 mt-2 text-sm">Start building your second brain</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-rose-900/30 border border-rose-700/50 text-rose-300 text-sm">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm font-medium"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
 
           <div className="mb-6 flex justify-center">
@@ -76,18 +108,18 @@ const RegisterPage = () => {
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-700"></div>
+              <div className="w-full border-t border-white/[0.06]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-slate-900 text-slate-500">Or sign up with email</span>
+              <span className="px-3 text-slate-500 font-medium" style={{ backgroundColor: '#0a0f1e' }}>Or sign up with email</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-300">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500" size={18}/>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-300">Full Name</label>
+              <div className="relative group">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-400 transition-colors duration-300" size={18}/>
                 <input
                   id="register-name"
                   type="text"
@@ -96,15 +128,15 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   required
                   placeholder="Your name"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all py-3 pl-10 pr-4"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/40 hover:border-white/[0.12] transition-all duration-300 py-3 pl-11 pr-4 shadow-inner-glow"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-300">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500" size={18}/>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-300">Email</label>
+              <div className="relative group">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-400 transition-colors duration-300" size={18}/>
                 <input
                   id="register-email"
                   type="email"
@@ -113,15 +145,15 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   required
                   placeholder="you@example.com"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all py-3 pl-10 pr-4"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/40 hover:border-white/[0.12] transition-all duration-300 py-3 pl-11 pr-4 shadow-inner-glow"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-300">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-500" size={18}/>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-300">Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-400 transition-colors duration-300" size={18}/>
                 <input
                   id="register-password"
                   type={showPassword ? 'text' : 'password'}
@@ -131,7 +163,7 @@ const RegisterPage = () => {
                   required
                   minLength={8}
                   placeholder="Min. 8 characters"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all py-3 pl-10 pr-12"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/40 hover:border-white/[0.12] transition-all duration-300 py-3 pl-11 pr-12 shadow-inner-glow"
                 />
                 <button
                   type="button"
@@ -147,7 +179,7 @@ const RegisterPage = () => {
               id="register-submit"
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl font-semibold text-white bg-gradient flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/30 mt-2"
+              className="w-full py-3.5 rounded-xl font-semibold text-white bg-gradient flex items-center justify-center gap-2 hover:opacity-95 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-glow-md hover:shadow-glow-lg active:scale-[0.98] mt-3 border border-white/10"
             >
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
               {isLoading ? 'Creating Account…' : 'Get Started'}
@@ -156,11 +188,11 @@ const RegisterPage = () => {
 
           <p className="text-center text-slate-500 text-sm mt-8">
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+            <Link to="/login" className="text-brand-400 hover:text-brand-300 font-semibold transition-colors">
               Sign In
             </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

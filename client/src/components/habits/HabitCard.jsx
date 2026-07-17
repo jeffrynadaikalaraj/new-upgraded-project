@@ -38,10 +38,10 @@ const HabitCard = ({ habit, onEdit, onArchive, onComplete, onUncomplete }) => {
 
   return (
     <div
-      className={`bg-slate-800/50 backdrop-blur-xl border rounded-2xl overflow-hidden transition-all duration-300 shadow-xl hover:shadow-2xl group ${
+      className={`premium-card-hover overflow-hidden transition-all duration-500 group ${
         todayDone
-          ? 'border-emerald-500/30 shadow-emerald-500/5'
-          : 'border-slate-700/50 hover:border-slate-600/70'
+          ? 'border-emerald-500/25 shadow-glow-emerald'
+          : ''
       }`}
     >
       {/* Color accent top bar */}
@@ -124,10 +124,10 @@ const HabitCard = ({ habit, onEdit, onArchive, onComplete, onUncomplete }) => {
             disabled={completing}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
               completing
-                ? 'opacity-50 cursor-not-allowed bg-slate-700'
+                ? 'opacity-50 cursor-not-allowed bg-white/[0.04]'
                 : todayDone
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
+                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20'
+                : 'bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-500/20'
             }`}
           >
             {todayDone ? (
@@ -155,7 +155,7 @@ const HabitCard = ({ habit, onEdit, onArchive, onComplete, onUncomplete }) => {
 
         {/* Expanded calendar */}
         {expanded && (
-          <div className="mt-4 pt-4 border-t border-slate-700/50 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="mt-4 pt-4 border-t border-white/[0.06] animate-in fade-in slide-in-from-top-2 duration-200">
             {habit.description && (
               <p className="text-xs text-slate-400 mb-4 leading-relaxed">{habit.description}</p>
             )}

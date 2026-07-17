@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const fs = require('fs');
 const path = require('path');
 const Document = require('../models/Document');
@@ -5,7 +6,7 @@ const { processDocument, summarizeDocument, askDocumentQuestion } = require('../
 const { chunkText, generateEmbedding } = require('../services/vectorService');
 
 // POST /api/documents/upload
-exports.uploadDocument = async (req, res, next) => {
+exports.uploadDocument = asyncHandler(async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: 'No file uploaded.' });
@@ -72,42 +73,34 @@ exports.uploadDocument = async (req, res, next) => {
 };
 
 // GET /api/documents
-exports.getDocuments = async (req, res, next) => {
-  try {
+exports.getDocuments = asyncHandler(async (req, res, next) => {
     const docs = await Document.find({ userId: req.user.id })
       .select('-extractedText') // exclude heavy text in list view
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: docs });
-  } catch (err) {
-    next(err);
-  }
-};
+});
 
 // GET /api/documents/:id
-exports.getDocument = async (req, res, next) => {
-  try {
+exports.getDocument = asyncHandler(async (req, res, next) => {
+
     const doc = await Document.findOne({ _id: req.params.id, userId: req.user.id });
     if (!doc) return res.status(404).json({ success: false, error: 'Document not found.' });
     res.status(200).json({ success: true, data: doc });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // DELETE /api/documents/:id
-exports.deleteDocument = async (req, res, next) => {
-  try {
+exports.deleteDocument = asyncHandler(async (req, res, next) => {
+
     const doc = await Document.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     if (!doc) return res.status(404).json({ success: false, error: 'Document not found.' });
     res.status(200).json({ success: true, message: 'Document deleted.' });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
 // POST /api/documents/:id/ask
-exports.askQuestion = async (req, res, next) => {
-  try {
+exports.askQuestion = asyncHandler(async (req, res, next) => {
+
     const { question } = req.body;
     if (!question?.trim()) {
       return res.status(400).json({ success: false, error: 'A question is required.' });
@@ -122,7 +115,5 @@ exports.askQuestion = async (req, res, next) => {
 
     const answer = await askDocumentQuestion(doc.extractedText, question);
     res.status(200).json({ success: true, data: { answer } });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/theme.dart';
+import 'dart:ui' show ImageFilter;
 
 class AppScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
-  const AppScaffold({
-    super.key,
-    required this.navigationShell,
-  });
+  const AppScaffold({super.key, required this.navigationShell});
 
-  void _goBranch(int index) {
+  void _onItemTapped(int index, BuildContext context) {
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -19,39 +18,128 @@ class AppScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true, // allow content to scroll behind the nav bar
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: _goBranch,
-        backgroundColor: const Color(0xFF0f172a),
-        indicatorColor: const Color(0xFF818cf8).withOpacity(0.2),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: Color(0xFF818cf8)),
-            label: 'Dashboard',
+      bottomNavigationBar: _buildBottomNav(context),
+    );
+  }
+
+  Widget _buildBottomNav(BuildContext context) {
+    final currentIndex = navigationShell.currentIndex;
+
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+        child: Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppTheme.scaffoldBackground.withOpacity(0.85),
+            border: Border(top: BorderSide(color: Colors.white.withOpacity(0.06))),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 30,
+                offset: const Offset(0, -4),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.flag_outlined),
-            selectedIcon: Icon(Icons.flag, color: Color(0xFF818cf8)),
-            label: 'Goals',
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(0, Icons.space_dashboard_rounded, 'Home', currentIndex == 0, context),
+                  _buildNavItem(1, Icons.flag_rounded, 'Goals', currentIndex == 1, context),
+                  _buildPrimaryNavItem(2, Icons.graphic_eq_rounded, currentIndex == 2, context),
+                  _buildNavItem(3, Icons.repeat_rounded, 'Habits', currentIndex == 3, context),
+                  _buildNavItem(4, Icons.calendar_today_rounded, 'Planner', currentIndex == 4, context),
+                ],
+              ),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble, color: Color(0xFF818cf8)),
-            label: 'AI Chat',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.check_circle_outline),
-            selectedIcon: Icon(Icons.check_circle, color: Color(0xFF818cf8)),
-            label: 'Habits',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.list_alt),
-            selectedIcon: Icon(Icons.list_alt, color: Color(0xFF818cf8)),
-            label: 'Planner',
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label, bool isActive, BuildContext context) {
+    return GestureDetector(
+      onTap: () => _onItemTapped(index, context),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 60,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: isActive ? AppTheme.accentIndigo : AppTheme.mutedText,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isActive ? AppTheme.accentIndigo : AppTheme.mutedText,
+                letterSpacing: 0.2,
+              ),
+            ),
+            if (isActive) ...[
+              const SizedBox(height: 4),
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.accentIndigo,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.accentIndigo.withOpacity(0.6),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryNavItem(int index, IconData icon, bool isActive, BuildContext context) {
+    return GestureDetector(
+      onTap: () => _onItemTapped(index, context),
+      child: Container(
+        width: 52,
+        height: 52,
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          gradient: AppTheme.buttonGradient,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.indigo500.withOpacity(0.4),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: AppTheme.indigo500.withOpacity(0.1),
+              spreadRadius: 3,
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          size: 28,
+          color: Colors.white,
+        ),
       ),
     );
   }

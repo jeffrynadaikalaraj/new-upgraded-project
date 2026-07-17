@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const config = require('../config/env');
@@ -24,8 +25,8 @@ const sendTokenResponse = (user, statusCode, res) => {
   });
 };
 
-exports.register = async (req, res, next) => {
-  try {
+exports.register = asyncHandler(async (req, res, next) => {
+
     const { name, email, password, timezone, consent } = req.body;
 
     if (!name || name.trim().length === 0) {
@@ -58,13 +59,11 @@ exports.register = async (req, res, next) => {
     });
 
     sendTokenResponse(user, 201, res);
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.login = async (req, res, next) => {
-  try {
+exports.login = asyncHandler(async (req, res, next) => {
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -87,13 +86,11 @@ exports.login = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     sendTokenResponse(user, 200, res);
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.googleLogin = async (req, res, next) => {
-  try {
+exports.googleLogin = asyncHandler(async (req, res, next) => {
+
     const { credential } = req.body;
     
     if (!credential) {
@@ -129,11 +126,8 @@ exports.googleLogin = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     sendTokenResponse(user, 200, res);
-  } catch (err) {
-    console.error('Google login error:', err);
-    res.status(401).json({ success: false, error: 'Google authentication failed' });
-  }
-};
+
+});
 
 exports.refresh = async (req, res, next) => {
   try {
@@ -161,12 +155,13 @@ exports.getMe = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     res.status(200).json({ success: true, data: user });
   } catch (err) {
-    next(err);
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 };
 
-exports.updateConsent = async (req, res, next) => {
-  try {
+exports.updateConsent = asyncHandler(async (req, res, next) => {
+
     const user = await User.findByIdAndUpdate(
       req.user.id,
       {
@@ -179,7 +174,5 @@ exports.updateConsent = async (req, res, next) => {
       { new: true, runValidators: true }
     );
     res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

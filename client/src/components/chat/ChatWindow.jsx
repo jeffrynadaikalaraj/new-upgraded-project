@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import { useChatStore } from '../../stores/chatStore';
 import { useAuthStore } from '../../stores/authStore';
-import { Calendar, Target, Activity, BarChart2, Mic } from 'lucide-react';
+import { Calendar, Target, Activity, BarChart2, Mic, Sparkles } from 'lucide-react';
 
 const ChatWindow = () => {
   const { messages, isStreaming } = useChatStore();
@@ -32,19 +32,28 @@ const ChatWindow = () => {
     <div className="flex-1 overflow-y-auto w-full scrollbar-thin relative">
       {messages.length === 0 ? (
         <div className="h-full flex flex-col items-center justify-center text-center px-4 pt-4 pb-20">
-          <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Hello {user?.name ? user.name.split(' ')[0] : 'User'}.</h2>
-          <p className="text-slate-400 max-w-md mb-8 text-sm">
-            I'm your personal AI companion. How can I help you dominate your day?
-          </p>
+          {/* Ambient glow behind heading */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-brand-500/10 blur-3xl rounded-full scale-150" />
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-gradient mx-auto mb-6 flex items-center justify-center shadow-glow-md">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Hello {user?.name ? user.name.split(' ')[0] : 'User'}.</h2>
+              <p className="text-slate-400 max-w-md mb-10 text-sm leading-relaxed">
+                I'm your personal AI companion. How can I help you dominate your day?
+              </p>
+            </div>
+          </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl">
             {quickActions.map((action, idx) => (
               <button
                 key={idx}
                 onClick={action.action}
-                className="flex items-center justify-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-600 transition-all text-slate-300 py-3 px-4 rounded-xl text-sm font-medium"
+                className="flex items-center justify-center gap-2.5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 text-slate-300 hover:text-white py-3.5 px-4 rounded-xl text-sm font-medium shadow-inner-glow group"
               >
-                {action.icon}
+                <span className="text-brand-400 group-hover:text-brand-300 transition-colors">{action.icon}</span>
                 {action.label}
               </button>
             ))}

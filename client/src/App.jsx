@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 // Capacitor
 import { App as CapApp } from '@capacitor/app';
@@ -30,8 +31,8 @@ import SettingsPage from './pages/SettingsPage';
 import CalendarPage from './pages/CalendarPage';
 import AvatarSandbox from './pages/AvatarSandbox';
 const Placeholder = ({ title }) => (
-  <div className="flex h-full items-center justify-center bg-slate-900 text-white w-full">
-    <h1 className="text-3xl font-bold text-slate-500">{title} Page Coming Soon</h1>
+  <div className="flex h-full items-center justify-center text-white w-full" style={{ backgroundColor: '#0a0f1e' }}>
+    <h1 className="text-3xl font-bold text-gradient">{title} Page Coming Soon</h1>
   </div>
 );
 
@@ -42,22 +43,22 @@ const AppLayout = ({ children }) => {
   const isChatPage = location.pathname === '/chat';
   
   return (
-    <div className="flex h-screen w-full bg-slate-900 text-slate-100 overflow-hidden relative">
+    <div className="flex h-screen w-full text-slate-100 overflow-hidden relative" style={{ backgroundColor: '#0a0f1e' }}>
       <Sidebar />
       <main className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0 pt-16 md:pt-0">
         {/* Mobile menu button */}
         <button 
           onClick={toggleSidebar}
-          className="md:hidden absolute top-3 left-4 z-40 p-2 bg-slate-800/80 backdrop-blur-md border border-slate-700/50 rounded-lg text-slate-300 hover:text-white shadow-lg"
+          className="md:hidden absolute top-3 left-4 z-40 p-2.5 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-xl text-slate-300 hover:text-white hover:bg-white/[0.08] transition-all duration-300 shadow-lg"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
         </button>
         {children}
 
         {/* Floating Avatar for non-chat pages */}
         {!isChatPage && (
           <div className="absolute bottom-6 right-6 z-50 pointer-events-none group hidden md:block">
-            <div className="pointer-events-auto cursor-pointer transition-transform hover:scale-110 shadow-2xl rounded-full bg-slate-900/80 backdrop-blur border border-slate-700 p-2">
+            <div className="pointer-events-auto cursor-pointer transition-all duration-500 hover:scale-110 shadow-card hover:shadow-glow-md rounded-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] hover:border-brand-500/30 p-2">
               <AIAvatar size="small" />
             </div>
           </div>
@@ -121,6 +122,16 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-center" toastOptions={{
+        style: {
+          background: 'rgba(17, 24, 39, 0.95)',
+          color: '#f1f5f9',
+          border: '1px solid rgba(255,255,255,0.06)',
+          backdropFilter: 'blur(16px)',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+        }
+      }} />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />

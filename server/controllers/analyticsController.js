@@ -1,3 +1,4 @@
+const asyncHandler = require('express-async-handler');
 const Goal = require('../models/Goal');
 const Habit = require('../models/Habit');
 const DailyPlan = require('../models/DailyPlan');
@@ -10,8 +11,8 @@ const getPastDate = (daysAgo) => {
   return date.toISOString().split('T')[0];
 };
 
-exports.getOverview = async (req, res, next) => {
-  try {
+exports.getOverview = asyncHandler(async (req, res, next) => {
+
     const userId = req.user.id;
 
     // Fetch required data
@@ -92,13 +93,11 @@ exports.getOverview = async (req, res, next) => {
         mostProductiveDay
       }
     });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.getWeekly = async (req, res, next) => {
-  try {
+exports.getWeekly = asyncHandler(async (req, res, next) => {
+
     const userId = req.user.id;
     const weeklyData = [];
     
@@ -137,13 +136,11 @@ exports.getWeekly = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, data: weeklyData });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.getMonthly = async (req, res, next) => {
-  try {
+exports.getMonthly = asyncHandler(async (req, res, next) => {
+
     const userId = req.user.id;
     // Current month data calculation (4 weeks approximation)
     const today = new Date();
@@ -174,13 +171,11 @@ exports.getMonthly = async (req, res, next) => {
     }));
 
     res.status(200).json({ success: true, data: monthlyData });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.getHabits = async (req, res, next) => {
-  try {
+exports.getHabits = asyncHandler(async (req, res, next) => {
+
     const habits = await Habit.find({ userId: req.user.id, isArchived: false });
     const habitsData = habits.map(h => {
       const totalDays = h.completionLog.length;
@@ -198,13 +193,11 @@ exports.getHabits = async (req, res, next) => {
     habitsData.sort((a, b) => b.completionRate - a.completionRate);
 
     res.status(200).json({ success: true, data: habitsData });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});
 
-exports.getGoals = async (req, res, next) => {
-  try {
+exports.getGoals = asyncHandler(async (req, res, next) => {
+
     const goals = await Goal.find({ userId: req.user.id });
     
     const categoryCounts = {
@@ -230,7 +223,5 @@ exports.getGoals = async (req, res, next) => {
     })).filter(g => g.percentage > 0);
 
     res.status(200).json({ success: true, data: goalsData });
-  } catch (err) {
-    next(err);
-  }
-};
+  
+});

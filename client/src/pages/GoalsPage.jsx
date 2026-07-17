@@ -53,37 +53,35 @@ const GoalsPage = () => {
   });
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-slate-900 w-full relative">
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="page-container">
+      {/* Ambient Background Orbs */}
+      <div className="ambient-orb-primary w-[600px] h-[600px] -top-40 -right-40" />
+      <div className="ambient-orb-secondary w-[400px] h-[400px] -bottom-40 -left-40" />
 
       {/* Header */}
-      <div className="flex items-center justify-between p-8 pb-4 relative z-10">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Target className="text-indigo-400" size={32} />
+          <h1 className="page-title">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/20 flex items-center justify-center">
+              <Target className="text-brand-400" size={22} />
+            </div>
             My Goals
           </h1>
-          <p className="text-slate-400 mt-2 text-sm">Track your progress and get AI-powered next steps.</p>
+          <p className="page-subtitle">Track your progress and get AI-powered next steps.</p>
         </div>
-        <Button onClick={handleOpenNew} className="shadow-lg shadow-indigo-500/20">
+        <Button onClick={handleOpenNew} className="shadow-glow-sm">
           <Plus size={18} /> New Goal
         </Button>
       </div>
 
       {/* Filters */}
-      <div className="px-8 pb-6 pt-2 flex items-center gap-4 relative z-10 border-b border-slate-800">
-        <div className="flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50 backdrop-blur-md">
+      <div className="filter-bar">
+        <div className="filter-pill-group">
           {['active', 'completed', 'all'].map(status => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${
-                filterStatus === status 
-                  ? 'bg-slate-700 text-white shadow-md' 
-                  : 'text-slate-400 hover:text-slate-300'
-              }`}
+              className={filterStatus === status ? 'filter-pill-active' : 'filter-pill-inactive'}
             >
               {status}
             </button>
@@ -93,7 +91,7 @@ const GoalsPage = () => {
         <select 
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 backdrop-blur-md capitalize"
+          className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-brand-500/40 focus:ring-2 focus:ring-brand-500/20 backdrop-blur-md capitalize transition-all duration-300 cursor-pointer"
         >
           <option value="all">All Categories</option>
           {goalCategories.map(cat => (
@@ -108,16 +106,16 @@ const GoalsPage = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
+      <div className="page-content">
         {isLoading && goals.length === 0 ? (
           <PageSkeleton title="My Goals" showHeader={false} />
         ) : filteredGoals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
-            <div className="w-24 h-24 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6">
-              <Target size={48} className="text-indigo-400 opacity-50" />
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Target size={44} className="text-brand-400 opacity-60" />
             </div>
-            <h3 className="text-xl font-bold text-slate-200 mb-2">🎯 No goals yet</h3>
-            <p className="text-slate-400 text-sm mb-8">
+            <h3 className="empty-state-title">🎯 No goals yet</h3>
+            <p className="empty-state-description">
               {filterStatus === 'active' 
                 ? "Create your first goal and start building momentum." 
                 : "Try changing your filters to see more goals."}
@@ -125,7 +123,7 @@ const GoalsPage = () => {
             <Button onClick={handleOpenNew} variant="primary">Create Your First Goal</Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
             {filteredGoals.map(goal => (
               <GoalCard 
                 key={goal._id} 

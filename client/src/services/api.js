@@ -1,5 +1,6 @@
 import axios from 'axios';
 import storage from '../utils/storage';
+import toast from 'react-hot-toast';
 
 // In production: VITE_API_URL = https://your-backend.onrender.com/api
 // In development: Vite proxy forwards /api → http://localhost:5001
@@ -95,6 +96,15 @@ api.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
+    }
+    
+    // Global Error Handling
+    if (error.response && error.response.data && error.response.data.error) {
+      toast.error(error.response.data.error);
+    } else if (error.request) {
+      toast.error('Network error. Please check your connection.');
+    } else {
+      toast.error('An unexpected error occurred.');
     }
     
     return Promise.reject(error);
