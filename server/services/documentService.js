@@ -16,13 +16,6 @@ function fileToGenerativePart(filePath, mimeType) {
   };
 }
 
-// Polyfill DOMMatrix and DOMPoint for pdf-parse on newer Node.js versions
-if (typeof global.DOMMatrix === 'undefined') {
-  global.DOMMatrix = class DOMMatrix {};
-}
-if (typeof global.DOMPoint === 'undefined') {
-  global.DOMPoint = class DOMPoint {};
-}
 
 // Supported MIME types
 const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
@@ -56,22 +49,20 @@ const processDocument = async (file) => {
     return response.text().trim();
   }
 
-  // ── PDF — attempt text-layer extraction via pdf-parse
+  // ── PDF — Gemini Vision (natively supports PDFs) ──────────────────
   if (SUPPORTED_PDF_TYPES.includes(mimetype)) {
-    try {
-      const pdfParse = require('pdf-parse');
-      const dataBuffer = fs.readFileSync(filePath);
-      const pdfData = await pdfParse(dataBuffer);
-      const text = (pdfData.text || '').trim();
-      
-      if (!text || text.length < 5) {
-        throw new Error("Could not extract text from this PDF (it might be scanned). OCR for PDFs is not supported on this tier.");
-      }
-      return text;
-    } catch (err) {
-      if (err.message.includes('OCR for PDFs')) throw err;
-      throw new Error(`Failed to parse PDF: ${err.message}`);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = "Extract ALL text from this PDF document exactly as written, preserving the original structure, headings, and formatting as much as possible. If the PDF contains images or diagrams, describe them briefly. Return only the extracted content.";
+    const pdfPart = fileToGenerativePart(filePath, 'application/pdf');
+    
+    const result = await model.generateContent([prompt, pdfPart]);
+    const response = await result.response;
+    const text = response.text().trim();
+    
+    if (!text || text.length < 5) {
+      throw new Error("Could not extract text from this PDF. The document might be empty or corrupted.");
     }
+    return text;
   }
 
   // ── Audio/Video — Whisper Transcription ──────────────────────────
