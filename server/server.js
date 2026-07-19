@@ -1,4 +1,11 @@
-const app = require('./app');
+const fs = require('fs');
+let app;
+try {
+  app = require('./app');
+} catch (err) {
+  fs.writeFileSync('server-error.log', err.stack);
+  process.exit(1);
+}
 const { connectDB } = require('./config/db');
 const config = require('./config/env');
 const { initCronJobs } = require('./jobs/cronJobs');

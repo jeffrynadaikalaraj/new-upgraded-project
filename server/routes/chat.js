@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.use(protect); // All chat routes require auth
 
-router.get('/stream', chatLimiter, streamChat);
+router.post('/stream', chatLimiter, streamChat);
 router.get('/history', getChatHistory);
 router.get('/:id', getChat);
 router.delete('/:id', deleteChat);

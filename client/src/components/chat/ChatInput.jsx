@@ -6,6 +6,7 @@ import { useDocumentStore } from '../../stores/documentStore';
 
 const ChatInput = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('');
+  const [attachedDoc, setAttachedDoc] = useState(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -17,9 +18,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
     if (file) {
       try {
         const newDoc = await uploadDocument(file);
-        const textContent = newDoc.extractedText || newDoc.summary || 'No text could be extracted.';
-        const contextMsg = `[SYSTEM MESSAGE: The user has uploaded an image/document named "${newDoc.originalName}". The system's vision model has analyzed it and extracted the following content and context:]\n\n${textContent}\n\n[End of System Analysis. Please describe what you see based on this analysis and ask the user how they would like to proceed.]`;
-        onSendMessage(contextMsg);
+        setAttachedDoc(newDoc);
       } catch (err) {
         console.error('Upload failed:', err);
       }
@@ -46,9 +45,10 @@ const ChatInput = ({ onSendMessage, disabled }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message);
+    if ((message.trim() || attachedDoc) && !disabled) {
+      onSendMessage(message.trim(), attachedDoc);
       setMessage('');
+      setAttachedDoc(null);
       setIsUserTyping(false);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       if (textareaRef.current) {
@@ -112,7 +112,22 @@ const ChatInput = ({ onSendMessage, disabled }) => {
       )}
 
       <form onSubmit={handleSubmit} className="relative w-full flex items-end gap-2">
-        <div className="relative flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/25 focus-within:border-brand-500/30 hover:border-white/[0.12] transition-all duration-300 shadow-inner-glow">
+        <div className="relative flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/25 focus-within:border-brand-500/30 hover:border-white/[0.12] transition-all duration-300 shadow-inner-glow flex flex-col">
+          {attachedDoc && (
+            <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-brand-500/10 text-brand-300 px-3 py-1.5 rounded-lg text-xs font-semibold border border-brand-500/20">
+                <Paperclip className="w-3.5 h-3.5" />
+                <span className="truncate max-w-[200px]">{attachedDoc.originalName}</span>
+                <button 
+                  type="button" 
+                  onClick={() => setAttachedDoc(null)} 
+                  className="hover:text-white transition-colors ml-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             value={message}
@@ -159,7 +174,7 @@ const ChatInput = ({ onSendMessage, disabled }) => {
           
           <button
             type="submit"
-            disabled={!message.trim() || disabled}
+            disabled={(!message.trim() && !attachedDoc) || disabled}
             className="absolute right-2 bottom-2.5 p-2 text-brand-400 hover:text-brand-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-all duration-300 rounded-lg z-10 hover:bg-brand-500/10"
           >
             {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}

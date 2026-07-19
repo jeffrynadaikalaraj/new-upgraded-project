@@ -38,8 +38,8 @@ const UploadZone = ({ onUpload, isUploading, uploadProgress }) => {
       setValidationError(`"${file.name}" is not supported. Use PDF, TXT, PNG, JPG, or Audio/Video.`);
       return false;
     }
-    if (file.size > 20 * 1024 * 1024) {
-      setValidationError('File exceeds the 20 MB limit.');
+    if (file.size > 50 * 1024 * 1024) {
+      setValidationError('File exceeds the 50 MB limit.');
       return false;
     }
     setValidationError('');
@@ -94,7 +94,7 @@ const UploadZone = ({ onUpload, isUploading, uploadProgress }) => {
         <p className="text-sm font-semibold text-slate-300">
           {dragging ? 'Drop it here!' : 'Drag & drop or click to upload'}
         </p>
-        <p className="text-xs text-slate-500 mt-1">PDF · TXT · PNG · Audio · Video · Max 20 MB</p>
+        <p className="text-xs text-slate-500 mt-1">PDF · TXT · PNG · Audio · Video · Max 50 MB</p>
       </label>
 
       {/* Validation error */}

@@ -10,8 +10,8 @@ const ChatPage = () => {
 
   // Proactive Daily Briefing removed as per user request
 
-  const handleSendMessage = (text) => {
-    sendMessage(text);
+  const handleSendMessage = (text, attachedDoc = null) => {
+    sendMessage(text, attachedDoc);
   };
 
   const themes = [

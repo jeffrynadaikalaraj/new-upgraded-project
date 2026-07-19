@@ -24,6 +24,10 @@ const MessageSchema = new mongoose.Schema({
     type: String,
     default: 'system', // e.g., 'gemini-2.5-flash'
   },
+  attachedDocument: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Document',
+  },
   latencyMs: {
     type: Number,
   },

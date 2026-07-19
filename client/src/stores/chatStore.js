@@ -229,7 +229,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   // SSE Streaming using fetch (supports auth headers unlike EventSource)
-  sendMessage: async (text) => {
+  sendMessage: async (text, attachedDoc = null) => {
     const { activeChat, messages } = get();
     
     // Play SFX
@@ -239,22 +239,39 @@ export const useChatStore = create((set, get) => ({
     const tempUserMsgId = `user_${Date.now()}`;
     const tempAiMsgId = `ai_${Date.now()}`;
 
-    const newUserMsg = { _id: tempUserMsgId, role: 'user', content: text, timestamp: new Date() };
+    // If message is empty but there's a doc, set a default visible text
+    const visibleText = text || (attachedDoc ? `Uploaded file: ${attachedDoc.originalName}` : '');
+
+    const newUserMsg = { 
+      _id: tempUserMsgId, 
+      role: 'user', 
+      content: visibleText, 
+      timestamp: new Date(),
+      attachedDocument: attachedDoc ? attachedDoc._id : undefined,
+      attachedDocDetails: attachedDoc // temp store for UI rendering if needed
+    };
+    
     const newAiMsg  = { _id: tempAiMsgId, role: 'assistant', content: '', timestamp: new Date(), isStreaming: true };
 
     set({ messages: [...messages, newUserMsg, newAiMsg], isStreaming: true, isThinking: true });
 
     const token = localStorage.getItem('token');
-    const chatIdQuery = activeChat?._id ? `&chatId=${activeChat._id}` : '';
-    const url = `${BASE_URL}/api/chat/stream?message=${encodeURIComponent(text)}&mode=auto${chatIdQuery}`;
+    const url = `${BASE_URL}/api/chat/stream`;
 
     try {
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
         },
+        body: JSON.stringify({
+          message: visibleText,
+          mode: 'auto',
+          chatId: activeChat?._id || undefined,
+          attachedDocId: attachedDoc?._id || undefined
+        })
       });
 
       if (!response.ok) {

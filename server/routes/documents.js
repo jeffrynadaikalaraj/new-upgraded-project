@@ -18,7 +18,7 @@ router.use(protect);
 // Multer config — store to OS temp dir, apply file type + size filters
 const upload = multer({
   dest: os.tmpdir(),
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB max
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB max
   fileFilter: (_req, file, cb) => {
     const allowed = [
       'image/png', 'image/jpeg', 'image/jpg', 'image/webp',

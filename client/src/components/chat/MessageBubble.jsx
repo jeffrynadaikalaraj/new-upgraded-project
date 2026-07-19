@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ActionBadge from './ActionBadge';
 import { useNavigate } from 'react-router-dom';
-import { Target, Activity, Calendar, Copy, Share2, GitBranch, Check, Volume2 } from 'lucide-react';
+import { Target, Activity, Calendar, Copy, Share2, GitBranch, Check, Volume2, Paperclip } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { isNativePlatform } from '../../utils/platform';
@@ -28,6 +28,81 @@ const bubbleVariants = {
     scale: 1,
     transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] },
   },
+};
+
+// ── Markdown renderer components (module-level to avoid re-creation on every render) ──
+const markdownComponents = {
+  // ── Headings ──
+  h1: ({node, ...props}) => <h1 className="text-xl font-bold text-white mt-5 mb-3 first:mt-0" {...props} />,
+  h2: ({node, ...props}) => <h2 className="text-lg font-bold text-white mt-4 mb-2.5 first:mt-0" {...props} />,
+  h3: ({node, ...props}) => <h3 className="text-base font-semibold text-white mt-3.5 mb-2 first:mt-0" {...props} />,
+  h4: ({node, ...props}) => <h4 className="text-sm font-semibold text-slate-100 mt-3 mb-1.5 first:mt-0" {...props} />,
+
+  // ── Paragraphs ──
+  p: ({node, ...props}) => <p className="mb-3 last:mb-0 leading-relaxed text-sm text-slate-200" {...props} />,
+
+  // ── Links ──
+  a: ({node, ...props}) => <a className="text-indigo-400 hover:text-indigo-300 underline decoration-indigo-400/30 underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
+
+  // ── Bold & Italic ──
+  strong: ({node, ...props}) => <strong className="font-semibold text-white" {...props} />,
+  em: ({node, ...props}) => <em className="text-indigo-300/90 italic" {...props} />,
+
+  // ── Lists ──
+  ul: ({node, ...props}) => <ul className="mb-3 last:mb-0 space-y-1.5 pl-1" {...props} />,
+  ol: ({node, ...props}) => <ol className="mb-3 last:mb-0 space-y-1.5 pl-1 list-none" {...props} />,
+  li: ({node, ordered, index, children, ...rest}) => (
+    <li className="flex items-start gap-2 text-sm leading-relaxed text-slate-200" {...rest}>
+      {ordered ? (
+        <span className="flex-shrink-0 text-indigo-400/80 font-semibold text-xs mt-0.5 min-w-[1.2em]">
+          {(index ?? 0) + 1}.
+        </span>
+      ) : (
+        <span className="flex-shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400/60" aria-hidden="true" />
+      )}
+      <span className="flex-1">{children}</span>
+    </li>
+  ),
+
+  // ── Blockquotes ──
+  blockquote: ({node, ...props}) => (
+    <blockquote className="border-l-4 border-indigo-500/50 bg-indigo-500/[0.06] rounded-r-lg pl-4 pr-3 py-2.5 my-3 text-sm text-slate-300 italic" {...props} />
+  ),
+
+  // ── Horizontal Rule ──
+  hr: ({node, ...props}) => <hr className="border-white/[0.08] my-4" {...props} />,
+
+  // ── Code (inline & block) ──
+  code: ({node, inline, className, children, ...props}) => {
+    if (inline) {
+      return (
+        <code className="bg-white/[0.08] text-indigo-300 px-1.5 py-0.5 rounded-md text-[13px] font-mono border border-white/[0.06]" {...props}>
+          {children}
+        </code>
+      );
+    }
+    return (
+      <code className="text-[13px] font-mono text-slate-300 leading-relaxed" {...props}>
+        {children}
+      </code>
+    );
+  },
+  pre: ({node, ...props}) => (
+    <div className="bg-slate-900/80 rounded-xl p-4 overflow-x-auto my-3 border border-white/[0.08] shadow-inner">
+      <pre className="m-0" {...props} />
+    </div>
+  ),
+
+  // ── Tables ──
+  table: ({node, ...props}) => (
+    <div className="overflow-x-auto my-3 rounded-xl border border-white/[0.08]">
+      <table className="w-full text-sm text-left" {...props} />
+    </div>
+  ),
+  thead: ({node, ...props}) => <thead className="bg-white/[0.04] text-xs uppercase text-slate-400 tracking-wider" {...props} />,
+  th: ({node, ...props}) => <th className="px-4 py-2.5 font-semibold border-b border-white/[0.08]" {...props} />,
+  td: ({node, ...props}) => <td className="px-4 py-2 border-b border-white/[0.04] text-slate-300" {...props} />,
+  tr: ({node, ...props}) => <tr className="hover:bg-white/[0.02] transition-colors" {...props} />,
 };
 
 const MessageBubble = ({ message }) => {
@@ -123,24 +198,21 @@ const MessageBubble = ({ message }) => {
           </div>
         )}
         
-        <div className={`prose prose-invert max-w-none ${isUser ? 'text-white' : 'text-slate-200'}`}>
+        <div className={`max-w-none ${isUser ? 'text-white' : 'text-slate-200'}`}>
           {isUser ? (
-            <p className="whitespace-pre-wrap m-0 leading-relaxed">{message.content}</p>
+            <div className="flex flex-col gap-2">
+              {message.attachedDocDetails && (
+                <div className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-lg w-max border border-white/10 shadow-inner">
+                  <Paperclip className="w-4 h-4 text-indigo-300" />
+                  <span className="text-xs font-medium text-slate-100">{message.attachedDocDetails.originalName}</span>
+                </div>
+              )}
+              <p className="whitespace-pre-wrap m-0 leading-relaxed text-sm">{message.content}</p>
+            </div>
           ) : (
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]}
-              components={{
-                p: ({node, ...props}) => <p className="mb-3.5 last:mb-0 leading-relaxed text-sm" {...props} />,
-                a: ({node, ...props}) => <a className="text-indigo-400 hover:text-indigo-300 underline decoration-indigo-400/30 underline-offset-2" {...props} />,
-                code: ({node, inline, ...props}) => 
-                  inline ? (
-                    <code className="bg-white/[0.06] text-indigo-300 px-1.5 py-0.5 rounded-md text-sm font-mono" {...props} />
-                  ) : (
-                    <div className="bg-white/[0.03] rounded-xl p-4 overflow-x-auto my-4 border border-white/[0.06]">
-                      <code className="text-sm font-mono text-slate-300" {...props} />
-                    </div>
-                  )
-              }}
+              components={markdownComponents}
             >
               {cleanText || '...'}
             </ReactMarkdown>
@@ -177,7 +249,7 @@ const MessageBubble = ({ message }) => {
               {copied ? <span className="text-emerald-400">Copied!</span> : 'Copy'}
             </button>
             <button 
-              onClick={() => speakText(message.content, true)}
+              onClick={() => speakText(cleanText, true)}
               className="flex items-center gap-1.5 text-[11px] hover:text-indigo-300 transition-colors"
               title="Read aloud"
             >

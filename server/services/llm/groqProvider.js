@@ -7,6 +7,9 @@ const groq = new Groq({
 
 const modelName = 'llama-3.1-8b-instant'; // Using Meta's latest fast model on Groq
 
+// Prompt version — increment on every system prompt change for observability
+const PROMPT_VERSION = 'v2.1';
+
 // Basic non-streaming call
 exports.generateResponse = async (prompt, systemInstruction = '') => {
   const messages = [];
@@ -18,6 +21,8 @@ exports.generateResponse = async (prompt, systemInstruction = '') => {
   const chatCompletion = await groq.chat.completions.create({
     messages,
     model: modelName,
+    temperature: 0.7,
+    max_tokens: 1024,
   });
 
   return chatCompletion.choices[0]?.message?.content || '';
@@ -38,7 +43,12 @@ exports.generateStream = async (messages, systemInstruction = '') => {
     messages: formattedMessages,
     model: modelName,
     stream: true,
+    temperature: 0.7,
+    max_tokens: 1024,
   });
 
   return stream; // This returns an async iterable which orchestrator will handle
 };
+
+// Export prompt version for logging/observability
+exports.PROMPT_VERSION = PROMPT_VERSION;

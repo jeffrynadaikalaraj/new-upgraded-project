@@ -4,6 +4,8 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const config = require('../config/env');
 const groqProvider = require('./llm/groqProvider');
 const { transcribeAudio } = require('./audioService');
+const pdfParse = require('pdf-parse');
+const Tesseract = require('tesseract.js');
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 
@@ -38,31 +40,56 @@ const processDocument = async (file) => {
     return text.trim();
   }
 
-  // ── Images — Gemini Vision ──────────────────────────────────
+  // ── Images — Tesseract OCR + Gemini Vision Fallback ──────────────────────────────────
   if (SUPPORTED_IMAGE_TYPES.includes(mimetype)) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = "Analyze this image in deep detail. Extract all text exactly as written (in its original language). Then, provide a deep research summary of what this image contains, its context, and any relevant facts.";
-    const imagePart = fileToGenerativePart(filePath, mimetype);
-    
-    const result = await model.generateContent([prompt, imagePart]);
-    const response = await result.response;
-    return response.text().trim();
+    try {
+      const worker = await Tesseract.createWorker('eng');
+      const ret = await worker.recognize(filePath);
+      await worker.terminate();
+      
+      const ocrText = ret.data.text.trim();
+      if (ocrText && ocrText.length > 5) {
+        return ocrText;
+      }
+      throw new Error("OCR returned little or no text");
+    } catch (error) {
+      console.warn("Tesseract OCR failed or returned little text, falling back to Gemini Vision:", error.message);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const prompt = "Analyze this image in deep detail. Extract all text exactly as written (in its original language). Then, provide a deep research summary of what this image contains, its context, and any relevant facts.";
+      const imagePart = fileToGenerativePart(filePath, mimetype);
+      
+      const result = await model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      return response.text().trim();
+    }
   }
 
-  // ── PDF — Gemini Vision (natively supports PDFs) ──────────────────
+  // ── PDF — pdf-parse with Gemini Vision Fallback ──────────────────
   if (SUPPORTED_PDF_TYPES.includes(mimetype)) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = "Extract ALL text from this PDF document exactly as written, preserving the original structure, headings, and formatting as much as possible. If the PDF contains images or diagrams, describe them briefly. Return only the extracted content.";
-    const pdfPart = fileToGenerativePart(filePath, 'application/pdf');
-    
-    const result = await model.generateContent([prompt, pdfPart]);
-    const response = await result.response;
-    const text = response.text().trim();
-    
-    if (!text || text.length < 5) {
-      throw new Error("Could not extract text from this PDF. The document might be empty or corrupted.");
+    try {
+      const dataBuffer = fs.readFileSync(filePath);
+      const data = await pdfParse(dataBuffer);
+      const text = data.text.trim();
+      
+      if (!text || text.length < 5) {
+        throw new Error("pdf-parse returned no text, likely a scanned PDF.");
+      }
+      return text;
+    } catch (error) {
+      console.warn("pdf-parse failed, falling back to Gemini Vision:", error.message);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const prompt = "Extract ALL text from this PDF document exactly as written, preserving the original structure, headings, and formatting as much as possible. If the PDF contains images or diagrams, describe them briefly. Return only the extracted content.";
+      const pdfPart = fileToGenerativePart(filePath, 'application/pdf');
+      
+      const result = await model.generateContent([prompt, pdfPart]);
+      const response = await result.response;
+      const text = response.text().trim();
+      
+      if (!text || text.length < 5) {
+        throw new Error("Could not extract text from this PDF. The document might be empty or corrupted.");
+      }
+      return text;
     }
-    return text;
   }
 
   // ── Audio/Video — Whisper Transcription ──────────────────────────

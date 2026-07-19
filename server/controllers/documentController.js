@@ -70,7 +70,7 @@ exports.uploadDocument = asyncHandler(async (req, res, next) => {
     if (req.file?.path) fs.unlink(req.file.path, () => {});
     next(err);
   }
-};
+});
 
 // GET /api/documents
 exports.getDocuments = asyncHandler(async (req, res, next) => {
