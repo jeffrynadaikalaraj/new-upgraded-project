@@ -35,6 +35,14 @@ class _ChatInputState extends State<ChatInput> {
       child: SafeArea(
         child: Row(
           children: [
+            // Attachment button
+            IconButton(
+              icon: const Icon(LucideIcons.paperclip, color: AppTheme.mutedText, size: 20),
+              onPressed: () {
+                // TODO: Handle file upload
+              },
+            ),
+            const SizedBox(width: 4),
             Expanded(
               child: GlassCard(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -56,7 +64,15 @@ class _ChatInputState extends State<ChatInput> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
+            // Mic / Voice button
+            IconButton(
+              icon: const Icon(LucideIcons.mic, color: AppTheme.mutedText, size: 20),
+              onPressed: () {
+                // TODO: Handle voice input
+              },
+            ),
+            const SizedBox(width: 4),
             GestureDetector(
               onTap: _handleSend,
               child: Container(

@@ -52,6 +52,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     else if (isSpeaking) faceState = AIFaceState.speaking;
 
     return Scaffold(
+      drawer: _buildChatHistoryDrawer(),
       body: FloatingOrbBackground(
         child: SafeArea(
           child: Column(
@@ -65,6 +66,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 child: Row(
                   children: [
+                    Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(LucideIcons.menu, color: Colors.white, size: 24),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     MotionFaceAvatar(
                       state: faceState,
                       size: 40,
@@ -131,6 +139,90 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatHistoryDrawer() {
+    return Drawer(
+      backgroundColor: AppTheme.scaffoldBackground,
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.messageSquare, color: Colors.white),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Chat History',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(LucideIcons.plus, color: Colors.white),
+                    onPressed: () {
+                      ref.read(chatProvider.notifier).newChat();
+                      Navigator.pop(context);
+                    },
+                  )
+                ],
+              ),
+            ),
+            const Divider(color: AppTheme.borderColor),
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final historyAsync = ref.watch(chatHistoryProvider);
+                  return historyAsync.when(
+                    data: (chats) {
+                      if (chats.isEmpty) {
+                        return const Center(
+                          child: Text('No history found', style: TextStyle(color: AppTheme.mutedText)),
+                        );
+                      }
+                      return ListView.builder(
+                        itemCount: chats.length,
+                        itemBuilder: (context, index) {
+                          final chat = chats[index];
+                          return ListTile(
+                            leading: const Icon(LucideIcons.messageCircle, color: AppTheme.accentIndigo, size: 20),
+                            title: Text(
+                              chat['title'] ?? 'New Chat',
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              '${chat['messageCount'] ?? 0} messages',
+                              style: const TextStyle(color: AppTheme.mutedText, fontSize: 12),
+                            ),
+                            onTap: () {
+                              final id = chat['_id'] ?? chat['id'];
+                              if (id != null) {
+                                ref.read(chatProvider.notifier).loadChat(id);
+                              }
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, st) => Center(
+                      child: Text('Error: $e', style: const TextStyle(color: AppTheme.rose500)),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

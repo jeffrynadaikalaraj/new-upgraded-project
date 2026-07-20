@@ -6,11 +6,14 @@ import '../../../core/api/api_client.dart';
 final chatRepositoryProvider = Provider((ref) => ChatRepository());
 
 class ChatRepository {
-  Stream<String> sendMessageStream(String message) async* {
+  Stream<Map<String, dynamic>> sendMessageStream(String message, {String? chatId}) async* {
     try {
       final response = await apiClient.dio.post(
-        '/chat/stream', // Matches standard AI LifeOS backend route
-        data: {'message': message},
+        '/chat/stream',
+        data: {
+          'message': message,
+          if (chatId != null) 'chatId': chatId,
+        },
         options: Options(
           responseType: ResponseType.stream,
           headers: {'Accept': 'text/event-stream'},
@@ -29,11 +32,9 @@ class ChatRepository {
             if (dataString.isNotEmpty) {
               try {
                 final json = jsonDecode(dataString);
-                if (json.containsKey('content')) {
-                  yield json['content'] as String;
-                }
+                yield json;
               } catch (e) {
-                // Ignore malformed JSON chunks from chunk splitting
+                // Ignore malformed JSON chunks
               }
             }
           }
@@ -41,6 +42,24 @@ class ChatRepository {
       }
     } catch (e) {
       throw Exception('Failed to communicate with AI: $e');
+    }
+  }
+
+  Future<List<dynamic>> getChatHistory() async {
+    try {
+      final response = await apiClient.get('/chat/history');
+      return response.data['data'] ?? [];
+    } catch (e) {
+      throw Exception('Failed to fetch chat history: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getChat(String chatId) async {
+    try {
+      final response = await apiClient.get('/chat/$chatId');
+      return response.data['data'] ?? {};
+    } catch (e) {
+      throw Exception('Failed to fetch chat: $e');
     }
   }
 }

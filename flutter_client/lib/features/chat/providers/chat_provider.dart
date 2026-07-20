@@ -9,9 +9,15 @@ final chatProvider = StateNotifierProvider<ChatNotifier, List<ChatMessage>>((ref
 final isAiThinkingProvider = StateProvider<bool>((ref) => false);
 final isSpeakingProvider = StateProvider<bool>((ref) => false);
 
+final chatHistoryProvider = FutureProvider<List<dynamic>>((ref) async {
+  final repository = ref.read(chatRepositoryProvider);
+  return await repository.getChatHistory();
+});
+
 class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   final ChatRepository _repository;
   final Ref _ref;
+  String? currentChatId;
 
   ChatNotifier(this._repository, this._ref) : super([]) {
     state = [
@@ -24,6 +30,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   }
 
   void newChat() {
+    currentChatId = null;
     state = [
       ChatMessage(
         id: 'init_${DateTime.now().millisecondsSinceEpoch}',
@@ -53,21 +60,28 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     String fullResponse = '';
 
     try {
-      final stream = _repository.sendMessageStream(text);
+      final stream = _repository.sendMessageStream(text, chatId: currentChatId);
       await for (final chunk in stream) {
         if (_ref.read(isAiThinkingProvider)) {
           _ref.read(isAiThinkingProvider.notifier).state = false;
         }
         
-        fullResponse += chunk;
+        if (chunk.containsKey('chatId')) {
+          currentChatId = chunk['chatId'];
+        }
         
-        state = state.map((msg) {
-          if (msg.id == aiMsgId) {
-            return msg.copyWith(content: fullResponse);
-          }
-          return msg;
-        }).toList();
+        if (chunk.containsKey('content')) {
+          fullResponse += chunk['content'];
+          
+          state = state.map((msg) {
+            if (msg.id == aiMsgId) {
+              return msg.copyWith(content: fullResponse);
+            }
+            return msg;
+          }).toList();
+        }
       }
+      _ref.invalidate(chatHistoryProvider);
     } catch (e) {
       _ref.read(isAiThinkingProvider.notifier).state = false;
       state = [
@@ -78,6 +92,44 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
           role: MessageRole.system,
         )
       ];
+    }
+  }
+
+  Future<void> loadChat(String chatId) async {
+    try {
+      _ref.read(isAiThinkingProvider.notifier).state = true;
+      final data = await _repository.getChat(chatId);
+      currentChatId = chatId;
+      
+      final messages = data['messages'] as List<dynamic>? ?? [];
+      
+      state = messages.map((m) {
+        return ChatMessage(
+          id: m['_id'] ?? m['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          content: m['content'] ?? '',
+          role: m['role'] == 'assistant' ? MessageRole.ai : MessageRole.user,
+        );
+      }).toList();
+      
+      if (state.isEmpty) {
+        state = [
+          ChatMessage(
+            id: 'init_${DateTime.now().millisecondsSinceEpoch}',
+            content: 'Chat loaded, but no messages found.',
+            role: MessageRole.system,
+          )
+        ];
+      }
+    } catch (e) {
+      state = [
+        ChatMessage(
+          id: 'err_load',
+          content: 'Failed to load chat: $e',
+          role: MessageRole.system,
+        )
+      ];
+    } finally {
+      _ref.read(isAiThinkingProvider.notifier).state = false;
     }
   }
 }

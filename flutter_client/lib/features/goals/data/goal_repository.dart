@@ -67,7 +67,7 @@ class GoalRepository {
 
   Future<Goal> toggleMilestone(String goalId, String milestoneId, bool completed) async {
     try {
-      final response = await apiClient.patch('/goals/$goalId/milestones/$milestoneId', data: {
+      final response = await apiClient.put('/goals/$goalId/milestones/$milestoneId', data: {
         'completed': completed,
       });
       if (response.data['success'] == true) {

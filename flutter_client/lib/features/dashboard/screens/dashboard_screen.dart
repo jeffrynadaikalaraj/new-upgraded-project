@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -7,43 +8,26 @@ import '../../shared/design_system/floating_orbs.dart';
 import '../../shared/design_system/premium_card.dart';
 import '../../shared/design_system/ai_insight_card.dart';
 import '../../shared/widgets/ai_avatar/motion_face_avatar.dart';
+import '../providers/dashboard_provider.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dashboardAsync = ref.watch(dashboardProvider);
+
     return Scaffold(
       body: FloatingOrbBackground(
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 32),
-                
-                const AIInsightCard(
-                  insight: "You've been consistent with your workout habit this week. Great job! Consider starting your reading habit tomorrow.",
-                ),
-                const SizedBox(height: 24),
-                
-                _buildStatsGrid(),
-                const SizedBox(height: 24),
-                
-                _buildAISuggestions(),
-                const SizedBox(height: 24),
-                
-                _buildDailyReview(),
-                const SizedBox(height: 24),
-                
-                _buildWeeklyChart(),
-                const SizedBox(height: 24),
-                
-                _buildRecentActivity(),
-                const SizedBox(height: 100), // Padding for bottom nav
-              ],
+          child: RefreshIndicator(
+            onRefresh: () async => ref.refresh(dashboardProvider),
+            child: dashboardAsync.when(
+              data: (data) => _buildContent(context, data),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(
+                child: Text('Error: $e', style: const TextStyle(color: AppTheme.rose500)),
+              ),
             ),
           ),
         ),
@@ -51,7 +35,48 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildContent(BuildContext context, Map<String, dynamic> data) {
+    final user = data['user'] ?? {};
+    final stats = data['stats'] ?? {};
+    final aiInsight = data['aiInsight'] ?? "You're doing great! Keep it up.";
+    final aiSuggestions = (data['aiSuggestions'] as List<dynamic>?)?.cast<String>() ?? [];
+    final dailyReview = data['dailyReview'] ?? "No review available today.";
+    final weeklyChart = (data['weeklyChart'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+    final recentActivity = (data['recentActivity'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context, user['name'] ?? 'User'),
+          const SizedBox(height: 32),
+          
+          AIInsightCard(insight: aiInsight),
+          const SizedBox(height: 24),
+          
+          _buildStatsGrid(stats),
+          const SizedBox(height: 24),
+          
+          if (aiSuggestions.isNotEmpty) ...[
+            _buildAISuggestions(aiSuggestions),
+            const SizedBox(height: 24),
+          ],
+          
+          _buildDailyReview(dailyReview),
+          const SizedBox(height: 24),
+          
+          _buildWeeklyChart(weeklyChart),
+          const SizedBox(height: 24),
+          
+          _buildRecentActivity(recentActivity),
+          const SizedBox(height: 100), // Padding for bottom nav
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, String name) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -70,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
                 ShaderMask(
                   shaderCallback: (bounds) => AppTheme.accentGradient.createShader(bounds),
                   child: Text(
-                    'Jeff',
+                    name,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -93,7 +118,12 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(Map<String, dynamic> stats) {
+    final activeGoals = stats['activeGoals'] ?? 0;
+    final habitsToday = stats['habitsToday'] ?? 0;
+    final currentStreak = stats['currentStreak'] ?? 0;
+    final plannerScore = stats['plannerScore'] ?? 0;
+
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 16,
@@ -102,10 +132,10 @@ class DashboardScreen extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       childAspectRatio: 1.3,
       children: [
-        _buildStatCard('Active Goals', '4', LucideIcons.target, AppTheme.blue500, delay: 100),
-        _buildStatCard('Habits Tracked', '12', LucideIcons.activity, AppTheme.emerald500, delay: 150),
-        _buildStatCard('Current Streak', '7d', LucideIcons.flame, AppTheme.orange500, delay: 200),
-        _buildStatCard('Focus Score', '94%', LucideIcons.brainCircuit, AppTheme.purple500, delay: 250),
+        _buildStatCard('Active Goals', '$activeGoals', LucideIcons.target, AppTheme.blue500, delay: 100),
+        _buildStatCard('Habits Tracked', '$habitsToday', LucideIcons.activity, AppTheme.emerald500, delay: 150),
+        _buildStatCard('Current Streak', '${currentStreak}d', LucideIcons.flame, AppTheme.orange500, delay: 200),
+        _buildStatCard('Focus Score', '$plannerScore%', LucideIcons.brainCircuit, AppTheme.purple500, delay: 250),
       ],
     );
   }
@@ -155,7 +185,7 @@ class DashboardScreen extends StatelessWidget {
     ).animate().fadeIn(delay: delay.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOut);
   }
 
-  Widget _buildAISuggestions() {
+  Widget _buildAISuggestions(List<String> suggestions) {
     return PremiumCard(
       glowColor: AppTheme.violet500.withOpacity(0.15),
       child: Column(
@@ -180,9 +210,10 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildSuggestionItem("Break down your 'Launch App' goal into smaller tasks for this week."),
-          const SizedBox(height: 12),
-          _buildSuggestionItem("You typically complete more habits in the morning. Try moving your workout earlier."),
+          ...suggestions.map((s) => Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: _buildSuggestionItem(s),
+          )),
         ],
       ),
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1, end: 0);
@@ -215,7 +246,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyReview() {
+  Widget _buildDailyReview(String review) {
     return PremiumCard(
       glowColor: AppTheme.sky400.withOpacity(0.15),
       child: Column(
@@ -240,54 +271,14 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.03),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.04)),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text('HABITS', style: TextStyle(color: AppTheme.mutedText, fontSize: 10, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('4/5', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.03),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.04)),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text('TASKS', style: TextStyle(color: AppTheme.mutedText, fontSize: 10, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('6/8', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.only(left: 12),
             decoration: const BoxDecoration(
               border: Border(left: BorderSide(color: AppTheme.sky400, width: 2)),
             ),
-            child: const Text(
-              '"Solid progress today. You hit most of your habits, but task completion slowed down in the afternoon. Try scheduling intensive tasks earlier."',
-              style: TextStyle(color: AppTheme.secondaryText, fontSize: 13, fontStyle: FontStyle.italic, height: 1.5),
+            child: Text(
+              '"$review"',
+              style: const TextStyle(color: AppTheme.secondaryText, fontSize: 13, fontStyle: FontStyle.italic, height: 1.5),
             ),
           ),
         ],
@@ -295,7 +286,18 @@ class DashboardScreen extends StatelessWidget {
     ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildWeeklyChart() {
+  Widget _buildWeeklyChart(List<Map<String, dynamic>> weeklyChart) {
+    if (weeklyChart.isEmpty) return const SizedBox.shrink();
+
+    // Map backend data to BarChartGroups
+    List<BarChartGroupData> barGroups = [];
+    for (int i = 0; i < weeklyChart.length; i++) {
+      final item = weeklyChart[i];
+      final score = (item['score'] as num?)?.toDouble() ?? 0.0;
+      final color = score >= 80 ? AppTheme.emerald500 : AppTheme.blue500;
+      barGroups.push(_makeGroupData(i, score, color));
+    }
+
     return PremiumCard(
       height: 300,
       glowColor: AppTheme.emerald500.withOpacity(0.1),
@@ -333,11 +335,13 @@ class DashboardScreen extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                        final index = value.toInt();
+                        if (index < 0 || index >= weeklyChart.length) return const SizedBox();
+                        final dayStr = weeklyChart[index]['day'] ?? '';
                         return Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
-                            days[value.toInt()],
+                            dayStr,
                             style: const TextStyle(
                               color: AppTheme.mutedText, 
                               fontSize: 10,
@@ -354,15 +358,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 borderData: FlBorderData(show: false),
                 gridData: const FlGridData(show: false),
-                barGroups: [
-                  _makeGroupData(0, 40, AppTheme.blue500),
-                  _makeGroupData(1, 65, AppTheme.blue500),
-                  _makeGroupData(2, 50, AppTheme.blue500),
-                  _makeGroupData(3, 85, AppTheme.emerald500),
-                  _makeGroupData(4, 70, AppTheme.blue500),
-                  _makeGroupData(5, 45, AppTheme.blue500),
-                  _makeGroupData(6, 90, AppTheme.emerald500),
-                ],
+                barGroups: barGroups,
               ),
             ),
           ),
@@ -390,7 +386,9 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildRecentActivity(List<Map<String, dynamic>> activity) {
+    if (activity.isEmpty) return const SizedBox.shrink();
+    
     return PremiumCard(
       glowColor: AppTheme.purple500.withOpacity(0.15),
       child: Column(
@@ -415,20 +413,40 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildActivityItem('Completed Workout', '10:30 AM'),
-          const Padding(
-            padding: EdgeInsets.only(left: 4),
-            child: SizedBox(height: 16, child: VerticalDivider(color: AppTheme.borderColorSubtle, thickness: 1)),
-          ),
-          _buildActivityItem('Read 20 pages', 'Yesterday'),
-          const Padding(
-            padding: EdgeInsets.only(left: 4),
-            child: SizedBox(height: 16, child: VerticalDivider(color: AppTheme.borderColorSubtle, thickness: 1)),
-          ),
-          _buildActivityItem('Created "Learn Flutter" Goal', 'Yesterday'),
+          ...activity.expand((act) {
+            // Need to parse 'timestamp' maybe
+            final timeStr = act['timestamp'] != null ? _formatTime(act['timestamp']) : 'Just now';
+            return [
+              _buildActivityItem(act['text'] ?? 'Activity', timeStr),
+              if (act != activity.last)
+                const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: SizedBox(height: 16, child: VerticalDivider(color: AppTheme.borderColorSubtle, thickness: 1)),
+                ),
+            ];
+          }),
         ],
       ),
     ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  String _formatTime(dynamic timestamp) {
+    // Basic formatting for time
+    try {
+      final dt = DateTime.parse(timestamp.toString());
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+      
+      if (diff.inDays == 0) {
+        return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (diff.inDays == 1) {
+        return 'Yesterday';
+      } else {
+        return '${diff.inDays}d ago';
+      }
+    } catch (e) {
+      return 'Recently';
+    }
   }
 
   Widget _buildActivityItem(String title, String time) {

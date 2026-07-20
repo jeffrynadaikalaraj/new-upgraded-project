@@ -11,6 +11,8 @@ import '../features/habits/screens/habits_screen.dart';
 import '../features/planner/screens/planner_screen.dart';
 import '../shared/widgets/app_scaffold.dart';
 
+import '../features/auth/providers/auth_provider.dart';
+
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _shellNavigatorDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'shellDashboard');
 final GlobalKey<NavigatorState> _shellNavigatorGoalsKey = GlobalKey<NavigatorState>(debugLabel: 'shellGoals');
@@ -19,9 +21,28 @@ final GlobalKey<NavigatorState> _shellNavigatorHabitsKey = GlobalKey<NavigatorSt
 final GlobalKey<NavigatorState> _shellNavigatorPlannerKey = GlobalKey<NavigatorState>(debugLabel: 'shellPlanner');
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/login',
+    initialLocation: '/dashboard',
+    redirect: (context, state) {
+      final isAuth = authState.status == AuthStatus.authenticated;
+      final isSplash = authState.status == AuthStatus.initial || authState.status == AuthStatus.loading;
+      final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+
+      if (isSplash) return null; // Can optionally redirect to a splash screen
+
+      if (!isAuth && !isLoggingIn) {
+        return '/login';
+      }
+
+      if (isAuth && isLoggingIn) {
+        return '/dashboard';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/login',
