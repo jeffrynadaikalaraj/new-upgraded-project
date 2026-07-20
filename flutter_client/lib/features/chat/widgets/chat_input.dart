@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../app/theme.dart';
+import '../../shared/design_system/glass_card.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String) onSend;
@@ -33,13 +36,10 @@ class _ChatInputState extends State<ChatInput> {
         child: Row(
           children: [
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.cardColorTranslucent,
-                  borderRadius: BorderRadius.circular(24.0),
-                  border: Border.all(color: AppTheme.borderColor),
-                ),
+              child: GlassCard(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                borderRadius: BorderRadius.circular(24.0),
+                border: Border.all(color: AppTheme.borderColor),
                 child: TextField(
                   controller: _controller,
                   style: const TextStyle(color: Colors.white),
@@ -57,22 +57,23 @@ class _ChatInputState extends State<ChatInput> {
               ),
             ),
             const SizedBox(width: 12),
-            Container(
-              decoration: BoxDecoration(
-                gradient: AppTheme.buttonGradient,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.indigo500.withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_upward, color: Colors.white),
-                onPressed: _handleSend,
-              ),
+            GestureDetector(
+              onTap: _handleSend,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.buttonGradient,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.indigo500.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(LucideIcons.arrowUp, color: Colors.white, size: 20),
+              ).animate(onPlay: (c) => c.repeat(reverse: true)).scaleXY(begin: 1.0, end: 1.05, duration: 2.seconds, curve: Curves.easeInOut),
             ),
           ],
         ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../app/theme.dart';
 import 'dart:ui' show ImageFilter;
+import '../../core/voice/voice_overlay.dart';
 
 class AppScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -20,6 +23,29 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       extendBody: true, // allow content to scroll behind the nav bar
       body: navigationShell,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 32.0),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.accentIndigo.withOpacity(0.4),
+                blurRadius: 16,
+                spreadRadius: 2,
+                offset: const Offset(0, 4),
+              )
+            ],
+          ),
+          child: FloatingActionButton(
+            onPressed: () {
+              VoiceOverlay.show(context);
+            },
+            backgroundColor: AppTheme.scaffoldBackground,
+            child: const Icon(LucideIcons.mic, color: AppTheme.accentIndigo),
+          ),
+        ),
+      ),
       bottomNavigationBar: _buildBottomNav(context),
     );
   }
@@ -50,11 +76,11 @@ class AppScaffold extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildNavItem(0, Icons.space_dashboard_rounded, 'Home', currentIndex == 0, context),
-                  _buildNavItem(1, Icons.flag_rounded, 'Goals', currentIndex == 1, context),
-                  _buildPrimaryNavItem(2, Icons.graphic_eq_rounded, currentIndex == 2, context),
-                  _buildNavItem(3, Icons.repeat_rounded, 'Habits', currentIndex == 3, context),
-                  _buildNavItem(4, Icons.calendar_today_rounded, 'Planner', currentIndex == 4, context),
+                  _buildNavItem(0, LucideIcons.layoutDashboard, 'Home', currentIndex == 0, context),
+                  _buildNavItem(1, LucideIcons.target, 'Goals', currentIndex == 1, context),
+                  _buildPrimaryNavItem(2, LucideIcons.sparkles, currentIndex == 2, context),
+                  _buildNavItem(3, LucideIcons.activity, 'Habits', currentIndex == 3, context),
+                  _buildNavItem(4, LucideIcons.calendarDays, 'Planner', currentIndex == 4, context),
                 ],
               ),
             ),
@@ -65,51 +91,57 @@ class AppScaffold extends StatelessWidget {
   }
 
   Widget _buildNavItem(int index, IconData icon, String label, bool isActive, BuildContext context) {
+    Widget child = Container(
+      width: 60,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 24,
+            color: isActive ? AppTheme.accentIndigo : AppTheme.mutedText,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isActive ? AppTheme.accentIndigo : AppTheme.mutedText,
+              letterSpacing: 0.2,
+            ),
+          ),
+          if (isActive) ...[
+            const SizedBox(height: 4),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.accentIndigo,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.accentIndigo.withOpacity(0.6),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ).animate().scale(curve: Curves.easeOutBack, duration: 300.ms),
+          ]
+        ],
+      ),
+    );
+
+    if (isActive) {
+      child = child.animate().slideY(begin: 0.1, end: 0, duration: 200.ms);
+    }
+
     return GestureDetector(
       onTap: () => _onItemTapped(index, context),
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 60,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isActive ? AppTheme.accentIndigo : AppTheme.mutedText,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: isActive ? AppTheme.accentIndigo : AppTheme.mutedText,
-                letterSpacing: 0.2,
-              ),
-            ),
-            if (isActive) ...[
-              const SizedBox(height: 4),
-              Container(
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.accentIndigo,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.accentIndigo.withOpacity(0.6),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-              ),
-            ]
-          ],
-        ),
-      ),
+      child: child,
     );
   }
 
@@ -139,7 +171,7 @@ class AppScaffold extends StatelessWidget {
           icon,
           size: 28,
           color: Colors.white,
-        ),
+        ).animate(target: isActive ? 1 : 0).rotate(begin: 0, end: 0.1),
       ),
     );
   }

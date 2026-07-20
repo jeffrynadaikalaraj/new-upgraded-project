@@ -3,6 +3,8 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../../app/theme.dart';
 import '../models/message.dart';
 
+import 'package:flutter_animate/flutter_animate.dart';
+
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
 
@@ -84,7 +86,7 @@ class MessageBubble extends StatelessWidget {
                   codeblockPadding: const EdgeInsets.all(12),
                 ),
               ),
-      ),
+      ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }
