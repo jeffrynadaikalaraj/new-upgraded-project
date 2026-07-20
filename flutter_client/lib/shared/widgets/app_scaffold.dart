@@ -22,7 +22,22 @@ class AppScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true, // allow content to scroll behind the nav bar
-      body: navigationShell,
+      drawer: _buildDrawer(context),
+      body: Builder(
+        builder: (context) => Stack(
+          children: [
+            navigationShell,
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: IconButton(
+                icon: const Icon(LucideIcons.menu, color: Colors.white, size: 28),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            ),
+          ],
+        ),
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 32.0),
         child: Container(
@@ -173,6 +188,48 @@ class AppScaffold extends StatelessWidget {
           color: Colors.white,
         ).animate(target: isActive ? 1 : 0).rotate(begin: 0, end: 0.1),
       ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: AppTheme.scaffoldBackground.withOpacity(0.95),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.boxes, color: AppTheme.sky400, size: 32),
+                  const SizedBox(width: 12),
+                  Text('AI LifeOS', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const Divider(color: AppTheme.borderColorSubtle),
+            _buildDrawerItem(context, LucideIcons.brain, 'Memory System', '/memory', AppTheme.violet400),
+            _buildDrawerItem(context, LucideIcons.fileText, 'Document AI', '/documents', AppTheme.sky400),
+            _buildDrawerItem(context, LucideIcons.lineChart, 'Analytics', '/analytics', AppTheme.emerald400),
+            _buildDrawerItem(context, LucideIcons.barChart, 'Weekly Reports', '/reports', AppTheme.orange400),
+            _buildDrawerItem(context, LucideIcons.activity, 'Observability', '/observability', AppTheme.indigo400),
+            const Spacer(),
+            const Divider(color: AppTheme.borderColorSubtle),
+            _buildDrawerItem(context, LucideIcons.settings, 'Settings', '/settings', AppTheme.secondaryText),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(BuildContext context, IconData icon, String title, String route, Color color) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
+      onTap: () {
+        Navigator.pop(context); // close drawer
+        context.push(route);
+      },
     );
   }
 }

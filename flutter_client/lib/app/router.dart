@@ -11,6 +11,12 @@ import '../features/habits/screens/habits_screen.dart';
 import '../features/planner/screens/planner_screen.dart';
 import '../shared/widgets/app_scaffold.dart';
 
+import '../features/memory/screens/memory_screen.dart';
+import '../features/documents/screens/documents_screen.dart';
+import '../features/analytics/screens/analytics_screen.dart';
+import '../features/reports/screens/reports_screen.dart';
+import '../features/observability/screens/observability_screen.dart';
+import '../features/settings/screens/settings_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -103,6 +109,30 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/memory',
+        builder: (context, state) => const MemoryScreen(),
+      ),
+      GoRoute(
+        path: '/documents',
+        builder: (context, state) => const DocumentsScreen(),
+      ),
+      GoRoute(
+        path: '/analytics',
+        builder: (context, state) => const AnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: '/observability',
+        builder: (context, state) => const ObservabilityScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
