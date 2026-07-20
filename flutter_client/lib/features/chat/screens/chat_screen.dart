@@ -15,6 +15,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> with SingleTickerProviderStateMixin {
   late AnimationController _bgAnimController;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -28,7 +29,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with SingleTickerProvid
   @override
   void dispose() {
     _bgAnimController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -36,6 +48,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with SingleTickerProvid
     final messages = ref.watch(chatProvider);
     final isAiThinking = ref.watch(isAiThinkingProvider);
     final isSpeaking = ref.watch(isSpeakingProvider);
+
+    // Auto-scroll when messages length changes or streaming happens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
 
     return Scaffold(
       body: Stack(
@@ -131,6 +148,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with SingleTickerProvid
                 // Chat Messages
                 Expanded(
                   child: ListView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
@@ -140,8 +158,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with SingleTickerProvid
                 ),
 
                 // Disclaimer
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     'AI LifeOS may generate inaccurate information.',
                     style: TextStyle(color: AppTheme.mutedText, fontSize: 11),
@@ -160,3 +178,4 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with SingleTickerProvid
     );
   }
 }
+

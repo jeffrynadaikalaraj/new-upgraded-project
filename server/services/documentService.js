@@ -54,7 +54,7 @@ const processDocument = async (file) => {
       throw new Error("OCR returned little or no text");
     } catch (error) {
       console.warn("Tesseract OCR failed or returned little text, falling back to Gemini Vision:", error.message);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = "Analyze this image in deep detail. Extract all text exactly as written (in its original language). Then, provide a deep research summary of what this image contains, its context, and any relevant facts.";
       const imagePart = fileToGenerativePart(filePath, mimetype);
       
@@ -77,7 +77,7 @@ const processDocument = async (file) => {
       return text;
     } catch (error) {
       console.warn("pdf-parse failed, falling back to Gemini Vision:", error.message);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const prompt = "Extract ALL text from this PDF document exactly as written, preserving the original structure, headings, and formatting as much as possible. If the PDF contains images or diagrams, describe them briefly. Return only the extracted content.";
       const pdfPart = fileToGenerativePart(filePath, 'application/pdf');
       

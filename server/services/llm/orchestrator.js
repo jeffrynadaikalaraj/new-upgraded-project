@@ -2,6 +2,7 @@ const groqProvider = require('./groqProvider');
 const memoryService = require('../memoryService');
 const { executeAction } = require('../actionExecutor');
 const Document = require('../../models/Document');
+const PendingAction = require('../../models/PendingAction');
 const { semanticSearch } = require('../vectorService');
 
 const SYSTEM_PROMPT = `You are **AI LifeOS** — a personal AI mentor and life operating system.
@@ -51,12 +52,14 @@ You talk like a **warm, supportive friend** who genuinely cares about the user's
 **Goal/Planning** → Structured sections (e.g., Week 1, Week 2), bullet points per day/phase, tips section at the end.
 
 ## IMAGE/DOCUMENT VISION
-If provided with "Relevant Document Excerpts", this means the user has uploaded an image, screenshot, or document and the system has analyzed it for you. You MUST act as if you can 'see' the image directly based on this analysis. DO NOT apologize or claim you cannot see images. Use the extracted text to provide deep research or analysis.
+If provided with "Relevant Document Excerpts" or "[SYSTEM: The user has attached a file...]", this means the user has uploaded an image, screenshot, or document and the system has analyzed it for you. You MUST act as if you can 'see' the image directly based on this analysis. DO NOT apologize or claim you cannot see images. Provide a **very brief, friendly, and concise response (1-3 sentences max)** acknowledging the image content, unless the user specifically asks for a detailed breakdown. Keep your tone warm and conversational.
 
 ## ACTIONS
 When the user asks you to DO something (not just talk about it), you MUST include
-an action marker in your response. Format:
+an action marker in your response. You MUST wrap the action exactly in HTML comments like this:
 <!--ACTION:{"type":"create_goal","payload":{"title":"Learn Java","category":"learning"}}-->
+
+CRITICAL: NEVER output the raw word ACTION: without the <!-- --> wrapper. It must be completely hidden in HTML comments.
 
 Available actions:
 - create_goal: { title, description?, category?, priority?, targetDate? }
@@ -170,10 +173,28 @@ Address them by name occasionally. If they are slacking, gently push them based 
     const actionResults = [];
     for (const act of detectedActions) {
       if (act.type && act.payload) {
-        const result = await executeAction(userId, act.type, act.payload);
-        actionResults.push({ type: act.type, result });
-        // Stream the action back to the client
-        res.write(`data: ${JSON.stringify({ action: { type: act.type, result } })}\n\n`);
+        // Create a Pending Action in the database
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // Expires in 24 hours
+
+        const pendingAction = await PendingAction.create({
+          userId,
+          type: act.type,
+          payload: act.payload,
+          status: 'pending',
+          expiresAt
+        });
+
+        const pendingActionData = {
+          actionId: pendingAction._id,
+          type: act.type,
+          payload: act.payload,
+          status: 'pending'
+        };
+
+        actionResults.push(pendingActionData);
+        // Stream the pending action back to the client
+        res.write(`data: ${JSON.stringify({ action: pendingActionData })}\n\n`);
       }
     }
     

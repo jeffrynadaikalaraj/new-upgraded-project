@@ -6,8 +6,8 @@ class ApiClient {
 
   ApiClient() {
     _dio = Dio(BaseOptions(
-      // Default to localhost for Android emulator. Update this based on environment.
-      baseUrl: 'http://10.0.2.2:5001/api',
+      // Production Render Backend URL
+      baseUrl: 'https://new-upgraded-project.onrender.com/api',
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {
@@ -58,6 +58,11 @@ class ApiClient {
   // Convenient DELETE method
   Future<Response> delete(String path) async {
     return await _dio.delete(path);
+  }
+
+  // Convenient PATCH method
+  Future<Response> patch(String path, {dynamic data}) async {
+    return await _dio.patch(path, data: data);
   }
 }
 

@@ -44,7 +44,7 @@ const ChatPage = () => {
       />
 
       {/* Left Half: 3D Avatar Area */}
-      <div className="w-full md:w-1/2 h-[40vh] md:h-full relative flex flex-col border-b md:border-b-0 md:border-r border-white/[0.04] z-10" style={{ background: 'linear-gradient(180deg, rgba(10,15,30,0.7) 0%, rgba(10,15,30,0.5) 100%)', backdropFilter: 'blur(40px)' }}>
+      <div className="w-full md:w-1/2 h-[40%] md:h-full relative flex flex-col border-b md:border-b-0 md:border-r border-white/[0.04] z-10" style={{ background: 'linear-gradient(180deg, rgba(10,15,30,0.7) 0%, rgba(10,15,30,0.5) 100%)', backdropFilter: 'blur(40px)' }}>
         <AIAvatar size="full" />
         
         {/* Header/Controls overlaid on the Avatar */}
@@ -53,18 +53,6 @@ const ChatPage = () => {
            <div className="hidden md:block"></div>
            
            <div className="flex items-center gap-2 pointer-events-auto bg-white/[0.04] p-2 rounded-xl backdrop-blur-xl border border-white/[0.06] shadow-card">
-              <select 
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="bg-white/[0.06] border-none text-slate-300 text-xs rounded-lg focus:ring-1 focus:ring-brand-500 cursor-pointer p-1.5 font-medium"
-              >
-                <option value="en-US">English</option>
-                <option value="es-ES">Español</option>
-                <option value="fr-FR">Français</option>
-                <option value="de-DE">Deutsch</option>
-                <option value="hi-IN">Hindi</option>
-              </select>
-
               <select 
                 value={avatarTheme}
                 onChange={(e) => setAvatarTheme(e.target.value)}
@@ -83,7 +71,7 @@ const ChatPage = () => {
       </div>
 
       {/* Right Half: Chat Area */}
-      <div className="w-full md:w-1/2 h-[60vh] md:h-full flex flex-col relative z-10 border-l border-white/[0.03]" style={{ background: 'rgba(10,15,30,0.4)', backdropFilter: 'blur(32px)' }}>
+      <div className="w-full md:w-1/2 h-[60%] md:h-full flex flex-col relative z-10 border-l border-white/[0.03]" style={{ background: 'rgba(10,15,30,0.4)', backdropFilter: 'blur(32px)' }}>
         <ChatWindow />
         <div className="w-full pt-3 pb-4 px-4 sticky bottom-0 z-20" style={{ background: 'linear-gradient(to top, #0a0f1e 60%, transparent)' }}>
           <ChatInput onSendMessage={handleSendMessage} disabled={isStreaming} />

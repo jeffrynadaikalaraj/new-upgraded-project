@@ -26,6 +26,7 @@ import MemoryPage from './pages/MemoryPage';
 import PlannerPage from './pages/PlannerPage';
 import DashboardPage from './pages/DashboardPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ObservabilityPage from './pages/ObservabilityPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import CalendarPage from './pages/CalendarPage';

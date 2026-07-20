@@ -1,32 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../../core/api/api_client.dart';
+import '../data/auth_repository.dart';
 import '../../../core/storage/secure_storage.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) {
-  return AuthNotifier();
+  return AuthNotifier(ref.read(authRepositoryProvider));
 });
 
 class AuthNotifier extends StateNotifier<bool> {
-  AuthNotifier() : super(false);
+  final AuthRepository _repository;
+  
+  AuthNotifier(this._repository) : super(false);
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   Future<bool> login(String email, String password) async {
-    state = true; // isLoading = true
+    state = true;
     try {
-      final response = await apiClient.post('/auth/login', data: {
-        'email': email,
-        'password': password,
-      });
-
-      if (response.statusCode == 200) {
-        final token = response.data['token'];
-        if (token != null) {
-          await SecureStorage.saveToken(token);
-          state = false;
-          return true;
-        }
+      final data = await _repository.login(email, password);
+      final token = data['token'];
+      if (token != null) {
+        await SecureStorage.saveToken(token);
+        state = false;
+        return true;
       }
     } catch (e) {
       print('Login error: $e');
@@ -38,19 +34,12 @@ class AuthNotifier extends StateNotifier<bool> {
   Future<bool> register(String name, String email, String password) async {
     state = true;
     try {
-      final response = await apiClient.post('/auth/register', data: {
-        'name': name,
-        'email': email,
-        'password': password,
-      });
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final token = response.data['token'];
-        if (token != null) {
-          await SecureStorage.saveToken(token);
-          state = false;
-          return true;
-        }
+      final data = await _repository.register(name, email, password);
+      final token = data['token'];
+      if (token != null) {
+        await SecureStorage.saveToken(token);
+        state = false;
+        return true;
       }
     } catch (e) {
       print('Register error: $e');
@@ -75,17 +64,12 @@ class AuthNotifier extends StateNotifier<bool> {
         return false;
       }
 
-      final response = await apiClient.post('/auth/google', data: {
-        'credential': idToken,
-      });
-
-      if (response.statusCode == 200) {
-        final token = response.data['token'];
-        if (token != null) {
-          await SecureStorage.saveToken(token);
-          state = false;
-          return true;
-        }
+      final data = await _repository.googleSignIn(idToken);
+      final token = data['token'];
+      if (token != null) {
+        await SecureStorage.saveToken(token);
+        state = false;
+        return true;
       }
     } catch (e) {
       print('Google Sign-In error: $e');

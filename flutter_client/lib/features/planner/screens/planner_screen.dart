@@ -50,7 +50,7 @@ class PlannerScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.calendar_today, color: AppTheme.indigo400, size: 28),
+                              const Icon(Icons.calendar_today, color: AppTheme.accentIndigo, size: 28),
                               const SizedBox(width: 12),
                               Text('Daily Planner',
                                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -87,7 +87,7 @@ class PlannerScreen extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: const Center(
-                              child: Icon(Icons.auto_awesome, size: 44, color: AppTheme.indigo400),
+                              child: Icon(Icons.auto_awesome, size: 44, color: AppTheme.accentIndigo),
                             ),
                           ),
                           const SizedBox(height: 24),

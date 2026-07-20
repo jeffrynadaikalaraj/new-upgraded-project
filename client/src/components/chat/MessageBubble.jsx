@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ActionBadge from './ActionBadge';
+import CodeBlock from './CodeBlock';
 import { useNavigate } from 'react-router-dom';
 import { Target, Activity, Calendar, Copy, Share2, GitBranch, Check, Volume2, Paperclip } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -74,24 +75,30 @@ const markdownComponents = {
 
   // ── Code (inline & block) ──
   code: ({node, inline, className, children, ...props}) => {
-    if (inline) {
+    const match = /language-(\w+)/.exec(className || '');
+    if (!inline && match) {
       return (
-        <code className="bg-white/[0.08] text-indigo-300 px-1.5 py-0.5 rounded-md text-[13px] font-mono border border-white/[0.06]" {...props}>
-          {children}
-        </code>
+        <CodeBlock 
+          language={match[1]} 
+          value={String(children).replace(/\n$/, '')} 
+        />
+      );
+    }
+    if (!inline) {
+      return (
+        <CodeBlock 
+          language="text" 
+          value={String(children).replace(/\n$/, '')} 
+        />
       );
     }
     return (
-      <code className="text-[13px] font-mono text-slate-300 leading-relaxed" {...props}>
+      <code className="bg-white/[0.08] text-indigo-300 px-1.5 py-0.5 rounded-md text-[13px] font-mono border border-white/[0.06]" {...props}>
         {children}
       </code>
     );
   },
-  pre: ({node, ...props}) => (
-    <div className="bg-slate-900/80 rounded-xl p-4 overflow-x-auto my-3 border border-white/[0.08] shadow-inner">
-      <pre className="m-0" {...props} />
-    </div>
-  ),
+  pre: ({node, ...props}) => <>{props.children}</>,
 
   // ── Tables ──
   table: ({node, ...props}) => (
@@ -229,7 +236,7 @@ const MessageBubble = ({ message }) => {
         {message.actions && message.actions.length > 0 && (
           <div className="mt-2 space-y-2">
             {message.actions.map((action, idx) => (
-              <ActionBadge key={idx} action={action} />
+              <ActionBadge key={idx} action={action} messageId={message._id} />
             ))}
           </div>
         )}

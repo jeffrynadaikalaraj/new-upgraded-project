@@ -61,6 +61,7 @@ app.use('/api/memories', apiLimiter, memoryRoutes);
 app.use('/api/planner', apiLimiter, require('./routes/planner'));
 app.use('/api/dashboard', apiLimiter, require('./routes/dashboard'));
 app.use('/api/analytics', apiLimiter, require('./routes/analytics'));
+app.use('/api/observability', require('./routes/observabilityRoutes'));
 app.use('/api/reports', apiLimiter, require('./routes/reports'));
 app.use('/api/users', apiLimiter, require('./routes/users'));
 app.use('/api/documents', apiLimiter, require('./routes/documents'));

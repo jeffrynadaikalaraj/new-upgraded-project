@@ -2,7 +2,9 @@ const asyncHandler = require('express-async-handler');
 const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 const Document = require('../models/Document');
+const PendingAction = require('../models/PendingAction');
 const orchestrator = require('../services/llm/orchestrator');
+const { executeAction } = require('../services/actionExecutor');
 
 exports.streamChat = asyncHandler(async (req, res, next) => {
   try {
@@ -146,4 +148,71 @@ exports.deleteChat = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({ success: true, data: {} });
   
+});
+
+exports.executePendingAction = asyncHandler(async (req, res, next) => {
+  const { actionId } = req.body;
+  if (!actionId) {
+    return res.status(400).json({ success: false, error: 'actionId is required' });
+  }
+
+  const action = await PendingAction.findById(actionId);
+  if (!action) {
+    return res.status(404).json({ success: false, error: 'Action not found' });
+  }
+
+  if (action.userId.toString() !== req.user.id) {
+    return res.status(403).json({ success: false, error: 'Forbidden' });
+  }
+
+  if (action.status !== 'pending') {
+    return res.status(400).json({ success: false, error: `Action cannot be executed. Current status: ${action.status}` });
+  }
+
+  if (new Date() > action.expiresAt) {
+    action.status = 'expired';
+    await action.save();
+    return res.status(400).json({ success: false, error: 'Action has expired' });
+  }
+
+  try {
+    const result = await executeAction(req.user.id, action.type, action.payload);
+    
+    action.status = 'executed';
+    action.result = result;
+    await action.save();
+
+    res.status(200).json({ success: true, actionId: action._id, status: 'success', result });
+  } catch (err) {
+    console.error('Action execution failed:', err);
+    action.status = 'failed';
+    action.result = { error: err.message || 'Execution failed' };
+    await action.save();
+    res.status(500).json({ success: false, actionId: action._id, status: 'failed', error: err.message });
+  }
+});
+
+exports.rejectPendingAction = asyncHandler(async (req, res, next) => {
+  const { actionId } = req.body;
+  if (!actionId) {
+    return res.status(400).json({ success: false, error: 'actionId is required' });
+  }
+
+  const action = await PendingAction.findById(actionId);
+  if (!action) {
+    return res.status(404).json({ success: false, error: 'Action not found' });
+  }
+
+  if (action.userId.toString() !== req.user.id) {
+    return res.status(403).json({ success: false, error: 'Forbidden' });
+  }
+
+  if (action.status !== 'pending') {
+    return res.status(400).json({ success: false, error: `Action cannot be rejected. Current status: ${action.status}` });
+  }
+
+  action.status = 'rejected';
+  await action.save();
+
+  res.status(200).json({ success: true, actionId: action._id, status: 'rejected' });
 });

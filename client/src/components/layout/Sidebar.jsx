@@ -17,6 +17,7 @@ const navItems = [
   { path: '/calendar', label: 'Calendar', icon: Calendar },
   { path: '/memories', label: 'Memory', icon: Brain },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { path: '/observability', label: 'Observability', icon: Activity },
   { path: '/reports', label: 'Reports', icon: FileBarChart },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];

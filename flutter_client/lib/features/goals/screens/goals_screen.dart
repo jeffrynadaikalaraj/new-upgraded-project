@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme.dart';
+import '../providers/goals_provider.dart';
+import '../widgets/goal_card.dart';
+import '../widgets/create_goal_dialog.dart';
 
-class GoalsScreen extends StatefulWidget {
+class GoalsScreen extends ConsumerStatefulWidget {
   const GoalsScreen({super.key});
 
   @override
-  State<GoalsScreen> createState() => _GoalsScreenState();
+  ConsumerState<GoalsScreen> createState() => _GoalsScreenState();
 }
 
-class _GoalsScreenState extends State<GoalsScreen> {
+class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   String _filter = 'Active';
+
+  void _showCreateDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const CreateGoalDialog(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final goalsAsync = ref.watch(goalsProvider);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -67,7 +82,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.add, color: Colors.white),
-                          onPressed: () {},
+                          onPressed: _showCreateDialog,
                         ),
                       ),
                     ],
@@ -110,50 +125,84 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
                 
-                // Content (Empty State for now)
+                // Content
                 Expanded(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 100, height: 100,
-                            decoration: BoxDecoration(
-                              color: AppTheme.rose500.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Center(
-                              child: Text('🎯', style: TextStyle(fontSize: 48)),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          const Text('No Active Goals',
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Define what you want to achieve. AI LifeOS will help you break it down into actionable milestones.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: AppTheme.secondaryText, height: 1.5, fontSize: 15),
-                          ),
-                          const SizedBox(height: 32),
-                          ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.add, color: Colors.white),
-                            label: const Text('Create Your First Goal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.rose500,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ],
-                      ),
+                  child: goalsAsync.when(
+                    loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.rose500)),
+                    error: (err, stack) => Center(
+                      child: Text('Error loading goals: $err', style: const TextStyle(color: AppTheme.rose400)),
                     ),
+                    data: (goals) {
+                      final filteredGoals = goals.where((g) {
+                        if (_filter == 'Active') return g.status == 'active';
+                        if (_filter == 'Completed') return g.status == 'completed';
+                        return true;
+                      }).toList();
+
+                      if (filteredGoals.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 100, height: 100,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.rose500.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Center(
+                                    child: Text('🎯', style: TextStyle(fontSize: 48)),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const Text('No Goals Found',
+                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Define what you want to achieve. AI LifeOS will help you break it down into actionable milestones.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: AppTheme.secondaryText, height: 1.5, fontSize: 15),
+                                ),
+                                const SizedBox(height: 32),
+                                ElevatedButton.icon(
+                                  onPressed: _showCreateDialog,
+                                  icon: const Icon(Icons.add, color: Colors.white),
+                                  label: const Text('Create Your First Goal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.rose500,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return RefreshIndicator(
+                        onRefresh: () => ref.read(goalsProvider.notifier).refresh(),
+                        color: AppTheme.rose500,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          itemCount: filteredGoals.length,
+                          itemBuilder: (context, index) {
+                            return GoalCard(
+                              goal: filteredGoals[index],
+                              onTap: () {
+                                // Navigate to goal details (Phase C.2)
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -164,3 +213,4 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
   }
 }
+

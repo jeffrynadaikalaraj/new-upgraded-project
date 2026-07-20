@@ -228,6 +228,76 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  executePendingAction: async (messageId, actionId) => {
+    // 1. Set status to loading for this action
+    set(state => ({
+      messages: state.messages.map(m => {
+        if (m._id !== messageId || !m.actions) return m;
+        return {
+          ...m,
+          actions: m.actions.map(act => 
+            act.actionId === actionId ? { ...act, status: 'loading' } : act
+          )
+        };
+      })
+    }));
+
+    try {
+      const res = await api.post('/chat/action/execute', { actionId });
+      
+      // 2. Set status to success and save result
+      set(state => ({
+        messages: state.messages.map(m => {
+          if (m._id !== messageId || !m.actions) return m;
+          return {
+            ...m,
+            actions: m.actions.map(act => 
+              act.actionId === actionId 
+                ? { ...act, status: 'success', result: res.data.result } 
+                : act
+            )
+          };
+        })
+      }));
+      sfx.playReceiveMsg(); // Play success sound
+    } catch (err) {
+      console.error('Execute action failed:', err);
+      // 3. Set status to failed
+      set(state => ({
+        messages: state.messages.map(m => {
+          if (m._id !== messageId || !m.actions) return m;
+          return {
+            ...m,
+            actions: m.actions.map(act => 
+              act.actionId === actionId 
+                ? { ...act, status: 'failed', result: { success: false, message: err.response?.data?.error || err.message } } 
+                : act
+            )
+          };
+        })
+      }));
+    }
+  },
+
+  rejectPendingAction: async (messageId, actionId) => {
+    try {
+      await api.post('/chat/action/reject', { actionId });
+      set(state => ({
+        messages: state.messages.map(m => {
+          if (m._id !== messageId || !m.actions) return m;
+          return {
+            ...m,
+            actions: m.actions.map(act => 
+              act.actionId === actionId ? { ...act, status: 'rejected' } : act
+            )
+          };
+        })
+      }));
+    } catch (err) {
+      console.error('Reject action failed:', err);
+    }
+  },
+
   // SSE Streaming using fetch (supports auth headers unlike EventSource)
   sendMessage: async (text, attachedDoc = null) => {
     const { activeChat, messages } = get();
